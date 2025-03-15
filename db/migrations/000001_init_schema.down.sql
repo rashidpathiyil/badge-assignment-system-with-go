@@ -1,0 +1,6 @@
+DROP TABLE IF EXISTS events;
+DROP TABLE IF EXISTS user_badges;
+DROP TABLE IF EXISTS badge_criteria;
+DROP TABLE IF EXISTS badges;
+DROP TABLE IF EXISTS condition_types;
+DROP TABLE IF EXISTS event_types; 
