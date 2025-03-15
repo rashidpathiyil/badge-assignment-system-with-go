@@ -203,6 +203,52 @@ badge-assignment-system/
 └── README.md
 ```
 
+### Running Time-Based Criteria Tests
+
+The badge system includes a suite of unit tests for the time-based criteria evaluators in `internal/engine/time_evaluators_test.go`. These tests verify that the enhanced badge criteria functionality works correctly.
+
+#### Running the Tests
+
+1. Navigate to the `internal/engine` directory:
+   ```bash
+   cd internal/engine
+   ```
+
+2. Run all time evaluator tests:
+   ```bash
+   go test -v
+   ```
+
+3. Run a specific test:
+   ```bash
+   go test -v -run TestTimePeriodCriteria
+   ```
+
+#### Test Descriptions
+
+- **TestTimePeriodCriteria**: Tests the evaluation of time period-based criteria (days, weeks, months)
+- **TestPatternCriteria**: Tests pattern recognition for consistent, increasing, or decreasing event frequencies
+- **TestGapCriteria**: Tests evaluation of time gaps between events
+- **TestDurationCriteria**: Tests measurement of durations between paired events (e.g., start/end)
+- **TestAggregationCriteria**: Tests computation of aggregated values across events
+
+#### Troubleshooting Failed Tests
+
+If tests are failing:
+
+1. Check the test output for specific error messages
+2. Verify that the time_utils.go and time_evaluators.go files have consistent parameter names
+3. Ensure that the models referenced in the tests match the current model definitions
+
+#### Extending the Tests
+
+To add new test cases:
+
+1. Review the existing test patterns in time_evaluators_test.go
+2. Create test events with the appropriate timestamps and payload data
+3. Define criteria that test edge cases or new functionality
+4. Verify that metadata is correctly populated during evaluation
+
 ## License
 
 This project is licensed under the MIT License. 

@@ -76,6 +76,98 @@ func (re *RuleEngine) evaluateFlow(flow models.JSONB, userID string, metadata ma
 			return re.evaluateOrOperator(value, userID, metadata)
 		case "$not":
 			return re.evaluateNotOperator(value, userID, metadata)
+		// Time-based operators
+		case "$timePeriod":
+			criteria, ok := value.(map[string]interface{})
+			if !ok {
+				return false, fmt.Errorf("$timePeriod requires a criteria object")
+			}
+			// Get all events for the user (across all event types)
+			events, err := re.DB.GetUserEvents(userID)
+			if err != nil {
+				return false, fmt.Errorf("failed to get user events: %w", err)
+			}
+			return re.evaluateTimePeriodCriteria(criteria, events, metadata)
+		case "$pattern":
+			criteria, ok := value.(map[string]interface{})
+			if !ok {
+				return false, fmt.Errorf("$pattern requires a criteria object")
+			}
+			events, err := re.DB.GetUserEvents(userID)
+			if err != nil {
+				return false, fmt.Errorf("failed to get user events: %w", err)
+			}
+			return re.evaluatePatternCriteria(criteria, events, metadata)
+		case "$sequence":
+			criteria, ok := value.(map[string]interface{})
+			if !ok {
+				return false, fmt.Errorf("$sequence requires a criteria object")
+			}
+			return re.evaluateSequenceCriteria(criteria, userID, metadata)
+		case "$gap":
+			criteria, ok := value.(map[string]interface{})
+			if !ok {
+				return false, fmt.Errorf("$gap requires a criteria object")
+			}
+			events, err := re.DB.GetUserEvents(userID)
+			if err != nil {
+				return false, fmt.Errorf("failed to get user events: %w", err)
+			}
+			return re.evaluateGapCriteria(criteria, events, metadata)
+		case "$duration":
+			criteria, ok := value.(map[string]interface{})
+			if !ok {
+				return false, fmt.Errorf("$duration requires a criteria object")
+			}
+			events, err := re.DB.GetUserEvents(userID)
+			if err != nil {
+				return false, fmt.Errorf("failed to get user events: %w", err)
+			}
+			return re.evaluateDurationCriteria(criteria, events, metadata)
+		case "$aggregate":
+			criteria, ok := value.(map[string]interface{})
+			if !ok {
+				return false, fmt.Errorf("$aggregate requires a criteria object")
+			}
+			events, err := re.DB.GetUserEvents(userID)
+			if err != nil {
+				return false, fmt.Errorf("failed to get user events: %w", err)
+			}
+			return re.evaluateAggregationCriteria(criteria, events, metadata)
+		case "$timeWindow":
+			criteria, ok := value.(map[string]interface{})
+			if !ok {
+				return false, fmt.Errorf("$timeWindow requires a criteria object")
+			}
+			subFlow, ok := criteria["flow"].(map[string]interface{})
+			if !ok {
+				return false, fmt.Errorf("$timeWindow requires a 'flow' object")
+			}
+
+			// Parse the time window
+			windowStart, windowEnd, err := parseTimeWindow(criteria)
+			if err != nil {
+				return false, err
+			}
+
+			// Create a sub-metadata map to capture results within the time window
+			windowMetadata := make(map[string]interface{})
+
+			// Evaluate the sub-flow with time window constraints
+			// We'll need to modify any DB queries to include the time window filter
+			// This would require additional implementation in the DB functions
+			tempUserID := fmt.Sprintf("%s|%s|%s", userID, windowStart.Format(time.RFC3339), windowEnd.Format(time.RFC3339))
+			result, err := re.evaluateFlow(models.JSONB(subFlow), tempUserID, windowMetadata)
+			if err != nil {
+				return false, err
+			}
+
+			// Merge the window metadata with the parent metadata
+			for k, v := range windowMetadata {
+				metadata[fmt.Sprintf("window_%s", k)] = v
+			}
+
+			return result, nil
 		}
 	}
 
