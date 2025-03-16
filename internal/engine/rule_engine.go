@@ -26,15 +26,17 @@ type DBInterface interface {
 
 // RuleEngine handles the dynamic evaluation of badge criteria against events
 type RuleEngine struct {
-	DB     DBInterface
-	Logger *logging.Logger
+	DB           DBInterface
+	Logger       *logging.Logger
+	TimeVarCache *TimeVariableCache
 }
 
 // NewRuleEngine creates a new rule engine
 func NewRuleEngine(db DBInterface) *RuleEngine {
 	return &RuleEngine{
-		DB:     db,
-		Logger: logging.NewLogger("RULE-ENGINE", logging.LogLevelInfo),
+		DB:           db,
+		Logger:       logging.NewLogger("RULE-ENGINE", logging.LogLevelInfo),
+		TimeVarCache: NewTimeVariableCache(),
 	}
 }
 
@@ -46,6 +48,9 @@ func (re *RuleEngine) SetLogLevel(level logging.LogLevel) {
 // EvaluateBadgeCriteria checks if a user meets the criteria for a badge
 func (re *RuleEngine) EvaluateBadgeCriteria(badgeID int, userID string) (bool, map[string]interface{}, error) {
 	re.Logger.Debug("Evaluating badge criteria for badge ID %d and user %s", badgeID, userID)
+
+	// Reset time variable cache for new evaluation
+	re.TimeVarCache = NewTimeVariableCache()
 
 	// Get badge with criteria
 	badgeWithCriteria, err := re.DB.GetBadgeWithCriteria(badgeID)
@@ -216,7 +221,7 @@ func (re *RuleEngine) evaluateFlow(flow models.JSONB, userID string, metadata ma
 			}
 
 			// Parse the time window
-			windowStart, windowEnd, err := parseTimeWindow(criteria)
+			windowStart, windowEnd, err := parseTimeWindow(criteria, re.TimeVarCache)
 			if err != nil {
 				re.Logger.Error("Failed to parse time window: %v", err)
 				return false, err
@@ -473,7 +478,7 @@ func (re *RuleEngine) evaluateTimestampCondition(timestamp time.Time, conditions
 
 		switch operator {
 		case "$gte":
-			compareTime, err := parseTimeValue(value)
+			compareTime, err := re.parseTimeValueWithCache(value)
 			if err != nil {
 				re.Logger.Error("Error parsing time value for $gte: %v", err)
 				return false, err
@@ -483,7 +488,7 @@ func (re *RuleEngine) evaluateTimestampCondition(timestamp time.Time, conditions
 				return false, nil
 			}
 		case "$gt":
-			compareTime, err := parseTimeValue(value)
+			compareTime, err := re.parseTimeValueWithCache(value)
 			if err != nil {
 				re.Logger.Error("Error parsing time value for $gt: %v", err)
 				return false, err
@@ -493,7 +498,7 @@ func (re *RuleEngine) evaluateTimestampCondition(timestamp time.Time, conditions
 				return false, nil
 			}
 		case "$lte":
-			compareTime, err := parseTimeValue(value)
+			compareTime, err := re.parseTimeValueWithCache(value)
 			if err != nil {
 				re.Logger.Error("Error parsing time value for $lte: %v", err)
 				return false, err
@@ -503,7 +508,7 @@ func (re *RuleEngine) evaluateTimestampCondition(timestamp time.Time, conditions
 				return false, nil
 			}
 		case "$lt":
-			compareTime, err := parseTimeValue(value)
+			compareTime, err := re.parseTimeValueWithCache(value)
 			if err != nil {
 				re.Logger.Error("Error parsing time value for $lt: %v", err)
 				return false, err
@@ -513,7 +518,7 @@ func (re *RuleEngine) evaluateTimestampCondition(timestamp time.Time, conditions
 				return false, nil
 			}
 		case "$eq":
-			compareTime, err := parseTimeValue(value)
+			compareTime, err := re.parseTimeValueWithCache(value)
 			if err != nil {
 				re.Logger.Error("Error parsing time value for $eq: %v", err)
 				return false, err
@@ -523,7 +528,7 @@ func (re *RuleEngine) evaluateTimestampCondition(timestamp time.Time, conditions
 				return false, nil
 			}
 		case "$ne":
-			compareTime, err := parseTimeValue(value)
+			compareTime, err := re.parseTimeValueWithCache(value)
 			if err != nil {
 				re.Logger.Error("Error parsing time value for $ne: %v", err)
 				return false, err
@@ -540,12 +545,34 @@ func (re *RuleEngine) evaluateTimestampCondition(timestamp time.Time, conditions
 	return true, nil
 }
 
-// parseTimeValue converts a string or RFC3339 time value to time.Time
-func parseTimeValue(value interface{}) (time.Time, error) {
+// parseTimeValueWithCache converts a string or RFC3339 time value to time.Time using the TimeVariableCache
+func (re *RuleEngine) parseTimeValueWithCache(value interface{}) (time.Time, error) {
 	if timeStr, ok := value.(string); ok {
+		// Check if this is a dynamic time variable
+		if IsDynamicTimeVariable(timeStr) {
+			return ParseDynamicTimeVariable(timeStr, re.TimeVarCache)
+		}
+
+		// Otherwise parse as normal RFC3339 time
 		return time.Parse(time.RFC3339, timeStr)
 	}
-	return time.Time{}, errors.New("timestamp value must be a string in RFC3339 format")
+	return time.Time{}, errors.New("timestamp value must be a string in RFC3339 format or dynamic time variable")
+}
+
+// parseTimeValue converts a string or RFC3339 time value to time.Time
+// Global helper function for backward compatibility
+func parseTimeValue(value interface{}) (time.Time, error) {
+	if timeStr, ok := value.(string); ok {
+		// Check if this is a dynamic time variable
+		if IsDynamicTimeVariable(timeStr) {
+			cache := NewTimeVariableCache()
+			return ParseDynamicTimeVariable(timeStr, cache)
+		}
+
+		// Otherwise parse as normal RFC3339 time
+		return time.Parse(time.RFC3339, timeStr)
+	}
+	return time.Time{}, errors.New("timestamp value must be a string in RFC3339 format or dynamic time variable")
 }
 
 // evaluateComparison evaluates comparison operators on values

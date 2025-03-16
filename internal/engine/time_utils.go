@@ -783,28 +783,45 @@ func findValidSequence(sequenceEvents [][]models.Event, maxGapSeconds int, requi
 }
 
 // parseTimeWindow parses time window criteria and returns start and end time
-func parseTimeWindow(criteria map[string]interface{}) (time.Time, time.Time, error) {
+func parseTimeWindow(criteria map[string]interface{}, timeVarCache *TimeVariableCache) (time.Time, time.Time, error) {
 	var startTime, endTime time.Time
 	var err error
 
 	// Check for explicit start/end times
-	if startStr, ok := criteria["start"].(string); ok {
-		startTime, err = time.Parse(time.RFC3339, startStr)
-		if err != nil {
-			return startTime, endTime, fmt.Errorf("invalid start time format: %w", err)
+	if startValue, ok := criteria["start"]; ok {
+		if startStr, ok := startValue.(string); ok {
+			if IsDynamicTimeVariable(startStr) {
+				startTime, err = ParseDynamicTimeVariable(startStr, timeVarCache)
+			} else {
+				startTime, err = time.Parse(time.RFC3339, startStr)
+			}
+			if err != nil {
+				return startTime, endTime, fmt.Errorf("invalid start time format: %w", err)
+			}
 		}
 	}
 
-	if endStr, ok := criteria["end"].(string); ok {
-		endTime, err = time.Parse(time.RFC3339, endStr)
-		if err != nil {
-			return startTime, endTime, fmt.Errorf("invalid end time format: %w", err)
+	if endValue, ok := criteria["end"]; ok {
+		if endStr, ok := endValue.(string); ok {
+			if IsDynamicTimeVariable(endStr) {
+				endTime, err = ParseDynamicTimeVariable(endStr, timeVarCache)
+			} else {
+				endTime, err = time.Parse(time.RFC3339, endStr)
+			}
+			if err != nil {
+				return startTime, endTime, fmt.Errorf("invalid end time format: %w", err)
+			}
 		}
 	}
 
 	// Check for relative time window (e.g., "last 30d")
 	if lastStr, ok := criteria["last"].(string); ok {
-		endTime = time.Now()
+		// If using dynamic time variables, use that for endTime
+		if timeVarCache != nil {
+			endTime = timeVarCache.now
+		} else {
+			endTime = time.Now()
+		}
 
 		// Parse duration (e.g., "30d", "2w", "1m")
 		re := regexp.MustCompile(`^(\d+)([dwmqy])$`)
@@ -839,7 +856,12 @@ func parseTimeWindow(criteria map[string]interface{}) (time.Time, time.Time, err
 	}
 
 	if endTime.IsZero() {
-		endTime = time.Now()
+		// If using dynamic time variables, use that for default endTime
+		if timeVarCache != nil {
+			endTime = timeVarCache.now
+		} else {
+			endTime = time.Now()
+		}
 	}
 
 	return startTime, endTime, nil
@@ -847,35 +869,38 @@ func parseTimeWindow(criteria map[string]interface{}) (time.Time, time.Time, err
 
 // filterEventsByTimeWindow filters events based on a time window
 func filterEventsByTimeWindow(events []models.Event, timeWindow map[string]interface{}) ([]models.Event, error) {
-	startTime, endTime, err := parseTimeWindow(timeWindow)
+	startTime, endTime, err := parseTimeWindow(timeWindow, nil)
 	if err != nil {
 		return nil, err
 	}
 
-	var filteredEvents []models.Event
-
-	// Filter events within the time window
+	var filtered []models.Event
 	for _, event := range events {
 		if (event.OccurredAt.Equal(startTime) || event.OccurredAt.After(startTime)) &&
 			(event.OccurredAt.Equal(endTime) || event.OccurredAt.Before(endTime)) {
-			filteredEvents = append(filteredEvents, event)
+			filtered = append(filtered, event)
 		}
 	}
 
-	// Handle business days only
-	if businessDaysOnly, ok := timeWindow["businessDaysOnly"].(bool); ok && businessDaysOnly {
-		var businessDayEvents []models.Event
+	return filtered, nil
+}
 
-		for _, event := range filteredEvents {
-			if !isWeekend(event.OccurredAt) {
-				businessDayEvents = append(businessDayEvents, event)
-			}
-		}
-
-		return businessDayEvents, nil
+// filterEventsByTimeWindowWithCache filters events based on a time window using time variable cache
+func filterEventsByTimeWindowWithCache(events []models.Event, timeWindow map[string]interface{}, timeVarCache *TimeVariableCache) ([]models.Event, error) {
+	startTime, endTime, err := parseTimeWindow(timeWindow, timeVarCache)
+	if err != nil {
+		return nil, err
 	}
 
-	return filteredEvents, nil
+	var filtered []models.Event
+	for _, event := range events {
+		if (event.OccurredAt.Equal(startTime) || event.OccurredAt.After(startTime)) &&
+			(event.OccurredAt.Equal(endTime) || event.OccurredAt.Before(endTime)) {
+			filtered = append(filtered, event)
+		}
+	}
+
+	return filtered, nil
 }
 
 // calculateDuration calculates the duration between two events in the specified unit

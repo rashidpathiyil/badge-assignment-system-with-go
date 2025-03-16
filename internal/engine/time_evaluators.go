@@ -600,7 +600,7 @@ func (re *RuleEngine) evaluateAggregationCriteria(criteria map[string]interface{
 
 		// Filter events by time window if specified
 		re.Logger.Debug("Filtering events by time window")
-		filteredEvents, err := filterEventsByTimeWindow(events, timeWindow)
+		filteredEvents, err := filterEventsByTimeWindowWithCache(events, timeWindow, re.TimeVarCache)
 		if err != nil {
 			re.Logger.Error("Error filtering events by time window: %v", err)
 			return false, err
