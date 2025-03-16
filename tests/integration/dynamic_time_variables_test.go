@@ -607,3 +607,152 @@ func TestDynamicTimeWindowBadge(t *testing.T) {
 	assert.True(t, badgeFound, "Expected badge with ID %d to be awarded to user %s", badgeID, testUserID)
 	t.Logf("Successfully awarded badge %d to user %s using dynamic time window", badgeID, testUserID)
 }
+
+// TestAdvancedDynamicTimeVariables demonstrates various formats of $NOW dynamic time variables
+// in badge criteria definitions without testing the full badge awarding flow
+func TestAdvancedDynamicTimeVariables(t *testing.T) {
+	SetupTest()
+
+	// STEP 1: Create badges with different $NOW dynamic time variable formats
+	// and verify they can be created successfully
+
+	// Generate unique test identifiers
+	timestamp := time.Now().UnixNano() / 1000000
+	testPrefix := fmt.Sprintf("dynamic_time_%d", timestamp)
+
+	// Define different $NOW formats to test
+	nowVariants := []struct {
+		name        string
+		description string
+		criteria    map[string]interface{}
+	}{
+		{
+			name:        fmt.Sprintf("%s_simple_days", testPrefix),
+			description: "Uses $NOW(-30d) for 30 days ago",
+			criteria: map[string]interface{}{
+				"event": "any_event",
+				"criteria": map[string]interface{}{
+					"timestamp": map[string]interface{}{
+						"$gte": "$NOW(-30d)", // 30 days ago
+					},
+				},
+			},
+		},
+		{
+			name:        fmt.Sprintf("%s_hours", testPrefix),
+			description: "Uses $NOW(-24h) for 24 hours ago",
+			criteria: map[string]interface{}{
+				"event": "any_event",
+				"criteria": map[string]interface{}{
+					"timestamp": map[string]interface{}{
+						"$gte": "$NOW(-24h)", // 24 hours ago
+					},
+				},
+			},
+		},
+		{
+			name:        fmt.Sprintf("%s_minutes", testPrefix),
+			description: "Uses $NOW(-30m) for 30 minutes ago",
+			criteria: map[string]interface{}{
+				"event": "any_event",
+				"criteria": map[string]interface{}{
+					"timestamp": map[string]interface{}{
+						"$gte": "$NOW(-30m)", // 30 minutes ago
+					},
+				},
+			},
+		},
+		{
+			name:        fmt.Sprintf("%s_future", testPrefix),
+			description: "Uses $NOW(+7d) for 7 days in the future",
+			criteria: map[string]interface{}{
+				"event": "any_event",
+				"criteria": map[string]interface{}{
+					"timestamp": map[string]interface{}{
+						"$lte": "$NOW(+7d)", // 7 days in the future
+					},
+				},
+			},
+		},
+		{
+			name:        fmt.Sprintf("%s_combined", testPrefix),
+			description: "Uses combination of $NOW expressions for time window",
+			criteria: map[string]interface{}{
+				"event": "any_event",
+				"criteria": map[string]interface{}{
+					"timestamp": map[string]interface{}{
+						"$gte": "$NOW(-7d)", // 7 days ago
+						"$lte": "$NOW()",    // current time
+					},
+				},
+			},
+		},
+		{
+			name:        fmt.Sprintf("%s_with_and", testPrefix),
+			description: "Uses $NOW in complex criteria with $and operator",
+			criteria: map[string]interface{}{
+				"$and": []interface{}{
+					map[string]interface{}{
+						"event": "any_event",
+						"criteria": map[string]interface{}{
+							"timestamp": map[string]interface{}{
+								"$gte": "$NOW(-24h)", // 24 hours ago
+							},
+						},
+					},
+					map[string]interface{}{
+						"event": "any_event",
+						"criteria": map[string]interface{}{
+							"score": map[string]interface{}{
+								"$gte": float64(75),
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	// Create a badge for each $NOW variant and verify successful creation
+	createdBadges := 0
+	for i, variant := range nowVariants {
+		t.Logf("Testing $NOW variant %d: %s", i+1, variant.name)
+
+		// Create badge request
+		badgeReq := map[string]interface{}{
+			"name":            variant.name,
+			"description":     variant.description,
+			"image_url":       "https://example.com/dynamic_time_badge.png",
+			"flow_definition": variant.criteria,
+			"is_active":       true,
+		}
+
+		resp := testutil.MakeRequest("POST", "/api/v1/admin/badges", badgeReq)
+
+		// Verify successful creation
+		if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+			t.Errorf("Failed to create badge with $NOW variant '%s': %s", variant.name, string(resp.Body))
+			continue
+		}
+
+		// Parse badge response
+		var badgeResp struct {
+			Badge struct {
+				ID int `json:"id"`
+			} `json:"badge"`
+		}
+		err := json.Unmarshal(resp.Body, &badgeResp)
+		if err != nil {
+			t.Errorf("Failed to parse badge response for $NOW variant '%s': %v", variant.name, err)
+			continue
+		}
+
+		t.Logf("Successfully created badge ID %d with $NOW variant: %s",
+			badgeResp.Badge.ID, variant.name)
+		createdBadges++
+	}
+
+	// Summary
+	assert.True(t, createdBadges > 0, "Expected to create at least one badge with dynamic time variables")
+	t.Logf("Successfully created %d badges with various $NOW dynamic time variable formats", createdBadges)
+}

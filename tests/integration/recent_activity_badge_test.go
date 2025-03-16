@@ -72,18 +72,16 @@ func TestRecentActivityBadge(t *testing.T) {
 	eventTypeID := int(eventTypeResp["id"].(float64))
 	t.Logf("Created event type with ID: %d", eventTypeID)
 
-	// STEP 2: Create a badge with $timeWindow criteria
-	// Define a relative time window for the last 30 days
+	// STEP 2: Create a badge with dynamic time variable criteria
 	flowDefinition := map[string]interface{}{
-		"$timeWindow": map[string]interface{}{
-			"last": "30d", // Relative time window - last 30 days
-			"flow": map[string]interface{}{
-				"event": eventTypeName,
-				"criteria": map[string]interface{}{
-					"$eventCount": map[string]interface{}{
-						"$gte": float64(5), // At least 5 activities
-					},
-				},
+		"event": eventTypeName,
+		"criteria": map[string]interface{}{
+			"$eventCount": map[string]interface{}{
+				"$gte": float64(5), // At least 5 activities
+			},
+			"timestamp": map[string]interface{}{
+				"$gte": "$NOW(-30d)", // Dynamic time variable: 30 days ago from now
+				"$lte": "$NOW()",     // Dynamic time variable: current time
 			},
 		},
 	}

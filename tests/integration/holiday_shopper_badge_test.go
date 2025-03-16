@@ -82,18 +82,19 @@ func TestHolidayShopperBadge(t *testing.T) {
 	holidayStart := "2023-12-01T00:00:00Z"
 	holidayEnd := "2023-12-31T23:59:59Z"
 
-	// Define badge criteria using $timeWindow
+	// For testing recent purchase events, we could use $NOW-based criteria
+	// But for the holiday period, we'll keep specific dates since it's a fixed historical window
+	// This demonstrates using both fixed dates and dynamic variables in different contexts
+
 	flowDefinition := map[string]interface{}{
-		"$timeWindow": map[string]interface{}{
-			"start": holidayStart,
-			"end":   holidayEnd,
-			"flow": map[string]interface{}{
-				"event": eventTypeName,
-				"criteria": map[string]interface{}{
-					"$eventCount": map[string]interface{}{
-						"$gte": float64(3), // At least 3 purchases during the holiday period
-					},
-				},
+		"event": eventTypeName,
+		"criteria": map[string]interface{}{
+			"$eventCount": map[string]interface{}{
+				"$gte": float64(3), // At least 3 purchases during the holiday period
+			},
+			"timestamp": map[string]interface{}{
+				"$gte": holidayStart,
+				"$lte": holidayEnd,
 			},
 		},
 	}

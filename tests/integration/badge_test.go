@@ -82,7 +82,7 @@ func TestGetBadge(t *testing.T) {
 
 	// Use the badge ID from TestCreateBadge or a known existing badge ID
 	// This is more reliable than depending on the global variable
-	badgeID := 217 // Use a known badge ID that exists in the system
+	badgeID := 232 // Using a confirmed existing badge ID
 
 	// Make the API request
 	endpoint := fmt.Sprintf("/api/v1/badges/%d", badgeID)
@@ -117,7 +117,7 @@ func TestGetBadgeWithCriteria(t *testing.T) {
 
 	// Use the badge ID from TestCreateBadge or a known existing badge ID
 	// This is more reliable than depending on the global variable
-	badgeID := 217 // Use a known badge ID that exists in the system
+	badgeID := 232 // Using a confirmed existing badge ID
 
 	// Make the API request
 	endpoint := fmt.Sprintf("/api/v1/admin/badges/%d/criteria", badgeID)
