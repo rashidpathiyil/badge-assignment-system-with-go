@@ -1,0 +1,2 @@
+Tests fixed:
+1. Fixed pattern criteria without $pattern wrapper in internal/engine/time_evaluators_test.go

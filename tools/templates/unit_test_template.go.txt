@@ -1,0 +1,97 @@
+// This is a template for creating unit tests
+// Replace `package_name` with your actual package name
+package package_name
+
+import (
+	"testing"
+
+	"github.com/stretchr/testify/assert"
+)
+
+// TestFunctionName tests the FunctionName function
+func TestFunctionName(t *testing.T) {
+	// Setup test data
+	input := "test-input"
+	expected := "expected-output"
+	
+	// Call the function being tested
+	actual, err := FunctionName(input)
+	
+	// Assert the results
+	assert.NoError(t, err)
+	assert.Equal(t, expected, actual)
+}
+
+// TestFunctionWithTableDriven demonstrates table-driven test pattern
+func TestFunctionWithTableDriven(t *testing.T) {
+	// Setup test cases
+	testCases := []struct{
+		name        string
+		input       string
+		expected    string
+		shouldError bool
+	}{
+		{
+			name:        "Valid input",
+			input:       "valid-input",
+			expected:    "expected-output",
+			shouldError: false,
+		},
+		{
+			name:        "Invalid input",
+			input:       "invalid-input",
+			expected:    "",
+			shouldError: true,
+		},
+	}
+	
+	// Run each test case
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			// Call the function being tested
+			actual, err := FunctionName(tc.input)
+			
+			// Assert the results
+			if tc.shouldError {
+				assert.Error(t, err)
+			} else {
+				assert.NoError(t, err)
+				assert.Equal(t, tc.expected, actual)
+			}
+		})
+	}
+}
+
+// TestWithMocks demonstrates how to use mocks
+func TestWithMocks(t *testing.T) {
+	// Setup mocks
+	// mockDependency := &MockDependency{}
+	// mockDependency.On("Method", "arg").Return("result", nil)
+	
+	// Create the object under test with the mock
+	// objectUnderTest := NewObject(mockDependency)
+	
+	// Call the method being tested
+	// result, err := objectUnderTest.Method("arg")
+	
+	// Assert the results
+	// assert.NoError(t, err)
+	// assert.Equal(t, "expected", result)
+	
+	// Verify the mock interactions
+	// mockDependency.AssertExpectations(t)
+}
+
+// BenchmarkFunction is an example benchmark
+func BenchmarkFunction(b *testing.B) {
+	// Setup
+	input := "benchmark-input"
+	
+	// Reset the timer to exclude setup time
+	b.ResetTimer()
+	
+	// Run the benchmark
+	for i := 0; i < b.N; i++ {
+		FunctionName(input)
+	}
+} 

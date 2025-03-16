@@ -1,0 +1,24 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+When working on the code, follow these guidelines:
+
+Ask Before Making Changes: Always confirm with me before implementing any modifications to the code. Ensure I approve the approach and logic before proceeding.
+
+Generic and Scalable Solutions: Write code that is generic, reusable, and scalable. Avoid hardcoding or tailoring the solution to specific test cases or requirements. Think about edge cases and ensure the code can handle a wide range of inputs and scenarios.
+
+Meaningful Naming Conventions: Use clear, descriptive, and consistent naming for variables, functions, classes, and files. Names should reflect their purpose and functionality, making the code self-explanatory and easy to maintain.
+
+Modular and Clean Code: Break down the problem into smaller, modular components. Ensure the code is clean, well-structured, and follows best practices (e.g., DRY - Don’t Repeat Yourself, SOLID principles).
+
+Documentation and Comments: Include comments and documentation where necessary to explain complex logic or decisions. However, strive to write code that is intuitive enough to minimize the need for excessive comments.
+
+Testing and Validation: Ensure the code is thoroughly tested and validated for a variety of inputs, including edge cases. Provide examples or test cases to demonstrate its functionality.
+
+Performance and Efficiency: Optimize the code for performance and efficiency, considering time and space complexity where applicable.
+
+Future-Proofing: Design the code with future extensibility in mind. Avoid assumptions that may limit its adaptability to new requirements.
+
+By following these principles, ensure the code is robust, maintainable, and aligned with industry best practices. Always communicate your approach and reasoning before proceeding with implementation.

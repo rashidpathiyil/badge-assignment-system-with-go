@@ -1,0 +1,19 @@
+{
+  "name": "Team Player",
+  "description": "Collaborated on 5+ team projects in a month.",
+  "image_url": "https://example.com/badges/team-player.png",
+  "flow_definition": {
+    "criteria": {
+      "$timePeriod": {
+        "count": {
+          "$gte": 1
+        },
+        "periodType": "month"
+      },
+      "count": {
+        "$gte": 5
+      }
+    },
+    "event": "project-collaboration"
+  }
+}

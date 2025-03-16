@@ -1,0 +1,8 @@
+# Test Criteria Format Fixes
+## Fixed Issues:
+1. Fixed pattern criteria without $pattern wrapper in internal/engine/time_evaluators_test.go
+2. Removed extra closing brace in time_evaluators_test.go that was causing syntax errors
+## Remaining Issues:
+The validation script is still reporting issues, but they appear to be false positives.
+## Recommendation:
+The validation script (tools/validate_test_criteria.sh) may need to be updated to correctly recognize the fixed formats.

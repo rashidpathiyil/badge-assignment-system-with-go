@@ -4,6 +4,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/badge-assignment-system/internal/logging"
 	"github.com/badge-assignment-system/internal/models"
 )
 
@@ -28,8 +29,10 @@ func createTestEvents(count int, startTime time.Time, gap time.Duration) []model
 
 // Test time period criteria evaluation
 func TestTimePeriodCriteria(t *testing.T) {
-	// Create a RuleEngine instance without a DB since we're directly passing events
-	re := new(RuleEngine)
+	// Create a RuleEngine instance with a proper logger
+	re := &RuleEngine{
+		Logger: logging.NewLogger("TEST-ENGINE", logging.LogLevelError),
+	}
 
 	// Test case: Daily periods
 	startTime := time.Date(2023, 1, 1, 10, 0, 0, 0, time.UTC)
@@ -42,7 +45,7 @@ func TestTimePeriodCriteria(t *testing.T) {
 
 	criteria := map[string]interface{}{
 		"periodType": "day",
-		"count": map[string]interface{}{
+		"periodCount": map[string]interface{}{
 			"$gte": float64(3),
 		},
 	}
@@ -66,8 +69,10 @@ func TestTimePeriodCriteria(t *testing.T) {
 
 // Test pattern criteria evaluation
 func TestPatternCriteria(t *testing.T) {
-	// Create a RuleEngine instance without a DB since we're directly passing events
-	re := new(RuleEngine)
+	// Create a RuleEngine instance with a proper logger
+	re := &RuleEngine{
+		Logger: logging.NewLogger("TEST-ENGINE", logging.LogLevelError),
+	}
 
 	// Test case: Consistent pattern
 	startTime := time.Date(2023, 1, 1, 10, 0, 0, 0, time.UTC)
@@ -80,14 +85,20 @@ func TestPatternCriteria(t *testing.T) {
 	}
 
 	criteria := map[string]interface{}{
-		"pattern":      "consistent",
-		"periodType":   "day",
-		"minPeriods":   float64(3),
-		"maxDeviation": float64(0.1),
+		"$pattern": map[string]interface{}{
+			"pattern":      "consistent",
+			"periodType":   "day",
+			"minPeriods":   float64(3),
+			"maxDeviation": float64(0.1),
+		},
 	}
 
+	// Need to extract the inner criteria for the evaluatePatternCriteria function
+	// since it expects unwrapped criteria (the wrapper is handled at a higher level)
+	innerCriteria := criteria["$pattern"].(map[string]interface{})
+
 	metadata := make(map[string]interface{})
-	result, err := re.evaluatePatternCriteria(criteria, events, metadata)
+	result, err := re.evaluatePatternCriteria(innerCriteria, events, metadata)
 
 	if err != nil {
 		t.Errorf("Error evaluating pattern criteria: %v", err)
@@ -100,8 +111,10 @@ func TestPatternCriteria(t *testing.T) {
 
 // Test gap criteria evaluation
 func TestGapCriteria(t *testing.T) {
-	// Create a RuleEngine instance without a DB since we're directly passing events
-	re := new(RuleEngine)
+	// Create a RuleEngine instance with a proper logger
+	re := &RuleEngine{
+		Logger: logging.NewLogger("TEST-ENGINE", logging.LogLevelError),
+	}
 
 	// Create events with specific gaps
 	baseTime := time.Date(2023, 1, 1, 10, 0, 0, 0, time.UTC)
@@ -131,8 +144,10 @@ func TestGapCriteria(t *testing.T) {
 
 // Test duration criteria evaluation
 func TestDurationCriteria(t *testing.T) {
-	// Create a RuleEngine instance without a DB since we're directly passing events
-	re := new(RuleEngine)
+	// Create a RuleEngine instance with a proper logger
+	re := &RuleEngine{
+		Logger: logging.NewLogger("TEST-ENGINE", logging.LogLevelError),
+	}
 
 	// Create start and end events
 	baseTime := time.Date(2023, 1, 1, 10, 0, 0, 0, time.UTC)
@@ -171,8 +186,10 @@ func TestDurationCriteria(t *testing.T) {
 
 // Test aggregation criteria evaluation
 func TestAggregationCriteria(t *testing.T) {
-	// Create a RuleEngine instance without a DB since we're directly passing events
-	re := new(RuleEngine)
+	// Create a RuleEngine instance with a proper logger
+	re := &RuleEngine{
+		Logger: logging.NewLogger("TEST-ENGINE", logging.LogLevelError),
+	}
 
 	// Create events with values to aggregate
 	baseTime := time.Date(2023, 1, 1, 10, 0, 0, 0, time.UTC)

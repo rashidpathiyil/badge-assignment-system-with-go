@@ -42,6 +42,10 @@ type EventType struct {
 }
 
 // ConditionType represents the condition_types table
+// WARNING: This feature is not fully implemented in the current system.
+// The database schema and API endpoints exist, but there is no JavaScript engine
+// to execute the evaluation_logic field. Badge criteria use the direct JSON-based
+// approach with operators instead.
 type ConditionType struct {
 	ID              int       `db:"id" json:"id"`
 	Name            string    `db:"name" json:"name"`
@@ -141,6 +145,7 @@ type UpdateEventTypeRequest struct {
 }
 
 // NewConditionTypeRequest is used for creating a new condition type
+// WARNING: This feature is not fully implemented in the current system.
 type NewConditionTypeRequest struct {
 	Name            string `json:"name"`
 	Description     string `json:"description"`
@@ -148,6 +153,7 @@ type NewConditionTypeRequest struct {
 }
 
 // UpdateConditionTypeRequest is used for updating an existing condition type
+// WARNING: This feature is not fully implemented in the current system.
 type UpdateConditionTypeRequest struct {
 	Name            string `json:"name,omitempty"`
 	Description     string `json:"description,omitempty"`

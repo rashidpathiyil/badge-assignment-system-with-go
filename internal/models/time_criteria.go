@@ -3,7 +3,7 @@ package models
 // TimePeriodCriteria represents criteria for counting unique time periods
 type TimePeriodCriteria struct {
 	PeriodType      string                 `json:"periodType"` // "day", "week", "month"
-	Count           map[string]interface{} `json:"count,omitempty"`
+	PeriodCount     map[string]interface{} `json:"periodCount,omitempty"`
 	ExcludeWeekends bool                   `json:"excludeWeekends,omitempty"`
 	ExcludeHolidays bool                   `json:"excludeHolidays,omitempty"`
 	Holidays        []string               `json:"holidays,omitempty"`

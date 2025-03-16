@@ -1,0 +1,19 @@
+{
+  "name": "Meeting Maestro",
+  "description": "Attended 10+ meetings in a month.",
+  "image_url": "https://example.com/badges/meeting-maestro.png",
+  "flow_definition": {
+    "criteria": {
+      "$timePeriod": {
+        "periodCount": {
+          "$gte": 1
+        },
+        "periodType": "month"
+      },
+      "$eventCount": {
+        "$gte": 10
+      }
+    },
+    "event": "meeting-attendance"
+  }
+}

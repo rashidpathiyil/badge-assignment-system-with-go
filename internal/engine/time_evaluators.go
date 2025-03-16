@@ -22,9 +22,9 @@ func (re *RuleEngine) evaluateTimePeriodCriteria(criteria map[string]interface{}
 		return false, fmt.Errorf("missing or invalid periodType in timePeriod criteria")
 	}
 
-	if count, ok := criteria["count"].(map[string]interface{}); ok {
-		timePeriodCriteria.Count = count
-		re.Logger.Debug("Count criteria: %v", count)
+	if periodCount, ok := criteria["periodCount"].(map[string]interface{}); ok {
+		timePeriodCriteria.PeriodCount = periodCount
+		re.Logger.Debug("Period count criteria: %v", periodCount)
 	}
 
 	if excludeWeekends, ok := criteria["excludeWeekends"].(bool); ok {
@@ -84,10 +84,10 @@ func (re *RuleEngine) evaluateTimePeriodCriteria(criteria map[string]interface{}
 	metadata["unique_period_count"] = periodCount
 	re.Logger.Debug("Unique period count: %d", periodCount)
 
-	// If there's a count criteria, evaluate it
-	if len(timePeriodCriteria.Count) > 0 {
-		re.Logger.Debug("Evaluating count criteria against period count: %d", periodCount)
-		result, err := re.evaluateNumericCriteria(float64(periodCount), timePeriodCriteria.Count)
+	// If there's a period count criteria, evaluate it
+	if len(timePeriodCriteria.PeriodCount) > 0 {
+		re.Logger.Debug("Evaluating period count criteria against period count: %d", periodCount)
+		result, err := re.evaluateNumericCriteria(float64(periodCount), timePeriodCriteria.PeriodCount)
 		if err != nil {
 			re.Logger.Error("Error evaluating numeric criteria: %v", err)
 			return false, err
@@ -188,27 +188,31 @@ func (re *RuleEngine) evaluatePatternCriteria(criteria map[string]interface{}, e
 
 	// Evaluate the pattern
 	var result bool
-	var patternMetadata map[string]interface{}
 
 	switch patternCriteria.Pattern {
 	case "consistent":
 		re.Logger.Debug("Evaluating consistent pattern")
-		result, patternMetadata = evaluateConsistentPattern(counts, patternCriteria.MaxDeviation)
+		critMap := map[string]interface{}{
+			"maxDeviation": patternCriteria.MaxDeviation,
+		}
+		result = evaluateConsistentPattern(counts, critMap, metadata)
 	case "increasing":
 		re.Logger.Debug("Evaluating increasing pattern")
-		result, patternMetadata = evaluateIncreasingPattern(counts, patternCriteria.MinIncreasePct)
+		critMap := map[string]interface{}{
+			"minIncreasePct": patternCriteria.MinIncreasePct,
+			"minPeriods":     float64(len(counts)),
+		}
+		result = evaluateIncreasingPattern(counts, critMap, periods, metadata)
 	case "decreasing":
 		re.Logger.Debug("Evaluating decreasing pattern")
-		result, patternMetadata = evaluateDecreasingPattern(counts, patternCriteria.MaxDecreasePct)
+		critMap := map[string]interface{}{
+			"maxDecreasePct": patternCriteria.MaxDecreasePct,
+			"minPeriods":     float64(len(counts)),
+		}
+		result = evaluateDecreasingPattern(counts, critMap, periods, metadata)
 	default:
 		re.Logger.Error("Unsupported pattern type: %s", patternCriteria.Pattern)
 		return false, fmt.Errorf("unsupported pattern type: %s", patternCriteria.Pattern)
-	}
-
-	// Merge pattern-specific metadata
-	for k, v := range patternMetadata {
-		metadata[k] = v
-		re.Logger.Debug("Pattern metadata: %s = %v", k, v)
 	}
 
 	re.Logger.Debug("Pattern criteria evaluation result: %v", result)
@@ -712,7 +716,7 @@ func (re *RuleEngine) evaluateNumericCriteria(value float64, criteria map[string
 			return false, fmt.Errorf("invalid comparison value for numeric criteria: %w", err)
 		}
 
-		re.Logger.Debug("Checking %s %.2f %s %.2f", value, operator, compareFloat)
+		re.Logger.Debug("Checking %.2f %s %.2f", value, operator, compareFloat)
 
 		switch operator {
 		case "$eq":

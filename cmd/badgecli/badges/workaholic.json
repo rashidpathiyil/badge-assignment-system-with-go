@@ -1,0 +1,23 @@
+{
+  "name": "Workaholic",
+  "description": "Logged 40+ hours in a week.",
+  "image_url": "https://example.com/badges/workaholic.png",
+  "flow_definition": {
+    "criteria": {
+      "$aggregate": {
+        "function": "sum",
+        "property": "hours",
+        "result": {
+          "$gte": 40
+        }
+      },
+      "$timePeriod": {
+        "periodCount": {
+          "$gte": 1
+        },
+        "periodType": "week"
+      }
+    },
+    "event": "work-log"
+  }
+}

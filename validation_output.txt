@@ -1,0 +1,75 @@
+Validating test criteria formats...
+Checking test files for criteria issues...
+Checking internal/engine/rule_engine_test.go
+✅ No pattern criteria without $pattern wrapper found in internal/engine/rule_engine_test.go
+✅ No pattern criteria without $pattern wrapper found in internal/engine/rule_engine_test.go
+✅ No pattern criteria without $pattern wrapper found in internal/engine/rule_engine_test.go
+✅ No numeric values without explicit type conversion found in internal/engine/rule_engine_test.go
+✅ No float values without explicit type conversion found in internal/engine/rule_engine_test.go
+⚠️  Found potential inconsistent criteria nesting in internal/engine/rule_engine_test.go
+  Found        1 issues in internal/engine/rule_engine_test.go
+Checking internal/engine/time_evaluators_test.go
+⚠️  Found pattern criteria without $pattern wrapper in internal/engine/time_evaluators_test.go
+✅ No pattern criteria without $pattern wrapper found in internal/engine/time_evaluators_test.go
+✅ No pattern criteria without $pattern wrapper found in internal/engine/time_evaluators_test.go
+✅ No numeric values without explicit type conversion found in internal/engine/time_evaluators_test.go
+⚠️  Found float values without explicit type conversion in internal/engine/time_evaluators_test.go
+✅ No potential inconsistent criteria nesting found in internal/engine/time_evaluators_test.go
+  Found        1 issues in internal/engine/time_evaluators_test.go
+Checking internal/engine/pattern_test.go
+✅ No pattern criteria without $pattern wrapper found in internal/engine/pattern_test.go
+✅ No pattern criteria without $pattern wrapper found in internal/engine/pattern_test.go
+✅ No pattern criteria without $pattern wrapper found in internal/engine/pattern_test.go
+✅ No numeric values without explicit type conversion found in internal/engine/pattern_test.go
+✅ No float values without explicit type conversion found in internal/engine/pattern_test.go
+✅ No potential inconsistent criteria nesting found in internal/engine/pattern_test.go
+  No issues found in internal/engine/pattern_test.go
+Checking tests/legacy/engine/pattern_criteria/pattern_test.go
+⚠️  Found pattern criteria without $pattern wrapper in tests/legacy/engine/pattern_criteria/pattern_test.go
+⚠️  Found pattern criteria without $pattern wrapper in tests/legacy/engine/pattern_criteria/pattern_test.go
+⚠️  Found pattern criteria without $pattern wrapper in tests/legacy/engine/pattern_criteria/pattern_test.go
+✅ No numeric values without explicit type conversion found in tests/legacy/engine/pattern_criteria/pattern_test.go
+⚠️  Found float values without explicit type conversion in tests/legacy/engine/pattern_criteria/pattern_test.go
+✅ No potential inconsistent criteria nesting found in tests/legacy/engine/pattern_criteria/pattern_test.go
+  Found        2 issues in tests/legacy/engine/pattern_criteria/pattern_test.go
+Checking tests/legacy/engine/badge_tests/early_bird_test.go
+✅ No pattern criteria without $pattern wrapper found in tests/legacy/engine/badge_tests/early_bird_test.go
+✅ No pattern criteria without $pattern wrapper found in tests/legacy/engine/badge_tests/early_bird_test.go
+✅ No pattern criteria without $pattern wrapper found in tests/legacy/engine/badge_tests/early_bird_test.go
+✅ No numeric values without explicit type conversion found in tests/legacy/engine/badge_tests/early_bird_test.go
+✅ No float values without explicit type conversion found in tests/legacy/engine/badge_tests/early_bird_test.go
+✅ No potential inconsistent criteria nesting found in tests/legacy/engine/badge_tests/early_bird_test.go
+  No issues found in tests/legacy/engine/badge_tests/early_bird_test.go
+
+==== Test Criteria Validation Report ====
+Found 4 potential issues in test criteria formats.
+
+Issue details:
+  - pattern_test.go: float values without explicit type conversion
+130:			"maxDeviation": float64(0.20), // Allow up to 20% deviation
+178:			"minIncreasePct": float64(10.0), // At least 10% average increase
+226:			"maxDecreasePct": float64(15.0), // Maximum 15% decrease per period (looking for gradual decline)
+280:			"minIncreasePct": float64(5.0),
+301:			"maxDeviation": float64(0.25), // Allow up to 25% deviation for weekly consistency
+    ... and 6 more instances
+
+  - pattern_test.go: pattern criteria without $pattern wrapper
+223:			"pattern":        "decreasing", // Looking for decreasing pattern
+
+  - rule_engine_test.go: potential inconsistent criteria nesting
+26:		"criteria": map[string]interface{}{
+96:		"criteria": map[string]interface{}{
+111:		"criteria": map[string]interface{}{
+244:		"criteria": map[string]interface{}{
+
+  - time_evaluators_test.go: float values without explicit type conversion
+92:			"maxDeviation": float64(0.1),
+
+Recommendations:
+1. Run the fix_test_criteria.sh script to address the identified issues
+2. Manually review any remaining issues that couldn't be automatically fixed
+3. Update the TEST_CRITERIA_EXAMPLES.md document with additional examples if needed
+
+For reference, the correct criteria formats are documented in:
+docs/TEST_CRITERIA_EXAMPLES.md
+

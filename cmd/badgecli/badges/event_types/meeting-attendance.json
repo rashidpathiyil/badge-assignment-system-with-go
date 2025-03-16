@@ -1,0 +1,35 @@
+{
+  "name": "Meeting Attendance",
+  "description": "User attendance at a meeting",
+  "schema": {
+    "properties": {
+      "duration_minutes": {
+        "minimum": 1,
+        "type": "integer"
+      },
+      "end_time": {
+        "format": "date-time",
+        "type": "string"
+      },
+      "meeting_id": {
+        "type": "string"
+      },
+      "meeting_title": {
+        "type": "string"
+      },
+      "start_time": {
+        "format": "date-time",
+        "type": "string"
+      },
+      "user_id": {
+        "type": "string"
+      }
+    },
+    "required": [
+      "user_id",
+      "meeting_id",
+      "start_time"
+    ],
+    "type": "object"
+  }
+}

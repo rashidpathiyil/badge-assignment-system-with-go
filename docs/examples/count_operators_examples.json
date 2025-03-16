@@ -1,0 +1,108 @@
+{
+  "examples": [
+    {
+      "name": "Event Count Example",
+      "description": "Awards a badge after a user reports 5 or more issues that were fixed",
+      "flow_definition": {
+        "event": "issue_reported",
+        "criteria": {
+          "status": "fixed",
+          "$eventCount": {
+            "$gte": 5
+          }
+        }
+      },
+      "note": "$eventCount must be placed within the criteria field of an event-specific definition"
+    },
+    {
+      "name": "Time Period Example",
+      "description": "Awards a badge when a user reports issues on at least 3 different days",
+      "flow_definition": {
+        "$timePeriod": {
+          "periodType": "day",
+          "periodCount": {
+            "$gte": 3
+          }
+        }
+      },
+      "note": "$timePeriod must be placed at the top level of the flow definition, not within a criteria field"
+    },
+    {
+      "name": "Combined Approach Example",
+      "description": "Awards a badge when a user reports 10+ issues across at least 3 different days",
+      "flow_definition": {
+        "$and": [
+          {
+            "event": "issue_reported",
+            "criteria": {
+              "status": "fixed",
+              "$eventCount": {
+                "$gte": 10
+              }
+            }
+          },
+          {
+            "$timePeriod": {
+              "periodType": "day",
+              "periodCount": {
+                "$gte": 3
+              }
+            }
+          }
+        ]
+      },
+      "note": "When combining both operators, each must maintain its correct structure within the flow definition"
+    },
+    {
+      "name": "Business Days Activity Example",
+      "description": "Awards a badge for being active on at least 5 business days",
+      "flow_definition": {
+        "$timePeriod": {
+          "periodType": "day",
+          "periodCount": {
+            "$gte": 5
+          },
+          "excludeWeekends": true
+        }
+      },
+      "note": "The excludeWeekends parameter can be used to focus on business days only"
+    },
+    {
+      "name": "Weekly Consistency Example",
+      "description": "Awards a badge for being active for 4 consecutive weeks",
+      "flow_definition": {
+        "$timePeriod": {
+          "periodType": "week",
+          "periodCount": {
+            "$gte": 4
+          }
+        }
+      },
+      "note": "For week periods, the system uses ISO week numbering (year + week number)"
+    }
+  ],
+  "metadata_examples": [
+    {
+      "scenario": "Event Count Badge",
+      "metadata": {
+        "event_count": 6
+      },
+      "note": "Shows the raw count of matching events"
+    },
+    {
+      "scenario": "Time Period Badge",
+      "metadata": {
+        "unique_period_count": 3
+      },
+      "note": "Shows the number of unique periods (days/weeks/months) with any activity"
+    },
+    {
+      "scenario": "Combined Badge",
+      "metadata": {
+        "event_count": 10,
+        "unique_period_count": 3
+      },
+      "note": "When both criteria are used, metadata contains counts for both types"
+    }
+  ]
+} 

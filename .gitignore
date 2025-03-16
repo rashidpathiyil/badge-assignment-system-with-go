@@ -8,14 +8,11 @@
 # Test binary, built with `go test -c`
 *.test
 
-# Output of the go coverage tool, specifically when used with LiteIDE
+# Output of the go coverage tool
 *.out
 
 # Dependency directories (remove the comment below to include it)
 # vendor/
-
-# Go workspace file
-go.work
 
 # IDE files
 .idea/
@@ -23,20 +20,50 @@ go.work
 *.swp
 *.swo
 
-# OS specific files
-.DS_Store
-
-# Environment files
-.env
-.env.local
-
 # Log files
 *.log
+tests/logs/**/*
+!tests/logs/README.md
+
+# Debug files
+tests/debug/**/*
+!tests/debug/README.md
+
+# Backup files
+*.bak
+*~
+
+# Integration test backups
+tests/integration_backup_*/**/*
+
+# Local configuration
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Project specific
+.DS_Store
+
+# Go workspace file
+go.work
 
 # Build output
 build/
 dist/
-bin/
+bin/*
+!bin/README.md
 
-# Custom project specific ignores
-# Add your custom patterns below 
+# Reports
+reports/*
+!reports/README.md
+
+# Scripts output
+scripts/*.log
+
+# Local badges directory (development artifacts)
+badges/*
+
+# Cursor editor files
+.cursor/

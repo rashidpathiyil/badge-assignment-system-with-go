@@ -1,0 +1,26 @@
+{
+  "name": "Overtime Warrior",
+  "description": "Logged extra 10 hours in a week.",
+  "image_url": "https://example.com/badges/overtime-warrior.png",
+  "flow_definition": {
+    "criteria": {
+      "$aggregate": {
+        "function": "sum",
+        "property": "hours",
+        "result": {
+          "$gte": 10
+        }
+      },
+      "$timePeriod": {
+        "count": {
+          "$gte": 1
+        },
+        "periodType": "week"
+      },
+      "payload": {
+        "is_overtime": true
+      }
+    },
+    "event": "work-log"
+  }
+}

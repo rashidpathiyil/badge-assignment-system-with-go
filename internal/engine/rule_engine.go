@@ -10,14 +10,28 @@ import (
 	"github.com/badge-assignment-system/internal/models"
 )
 
+// Ensure that *models.DB implements DBInterface
+var _ DBInterface = (*models.DB)(nil)
+
+// DBInterface defines the database operations needed by the rule engine
+type DBInterface interface {
+	GetBadgeWithCriteria(id int) (models.BadgeWithCriteria, error)
+	GetEventTypeByName(name string) (models.EventType, error)
+	GetUserEventsByType(userID string, eventTypeID int) ([]models.Event, error)
+	GetUserEvents(userID string) ([]models.Event, error)
+	GetActiveBadges() ([]models.Badge, error)
+	GetUserBadges(userID string) ([]models.UserBadge, error)
+	AwardBadgeToUser(userBadge *models.UserBadge) error
+}
+
 // RuleEngine handles the dynamic evaluation of badge criteria against events
 type RuleEngine struct {
-	DB     *models.DB
+	DB     DBInterface
 	Logger *logging.Logger
 }
 
 // NewRuleEngine creates a new rule engine
-func NewRuleEngine(db *models.DB) *RuleEngine {
+func NewRuleEngine(db DBInterface) *RuleEngine {
 	return &RuleEngine{
 		DB:     db,
 		Logger: logging.NewLogger("RULE-ENGINE", logging.LogLevelInfo),
@@ -337,10 +351,10 @@ func (re *RuleEngine) evaluateNotOperator(condition interface{}, userID string, 
 func (re *RuleEngine) evaluateEventCriteria(criteria map[string]interface{}, events []models.Event, metadata map[string]interface{}) (bool, error) {
 	re.Logger.Debug("Evaluating event criteria against %d events", len(events))
 
-	// Handle count criteria
-	if countCriteria, hasCount := criteria["count"].(map[string]interface{}); hasCount {
-		re.Logger.Debug("Detected count criteria, evaluating")
-		return re.evaluateCountCriteria(countCriteria, events, metadata)
+	// Handle event count criteria
+	if eventCountCriteria, hasEventCount := criteria["$eventCount"].(map[string]interface{}); hasEventCount {
+		re.Logger.Debug("Detected $eventCount criteria, evaluating")
+		return re.evaluateEventCountCriteria(eventCountCriteria, events, metadata)
 	}
 
 	// Filter events based on criteria
@@ -392,8 +406,8 @@ func (re *RuleEngine) filterEvents(criteria map[string]interface{}, events []mod
 // eventMatchesCriteria checks if an event matches the given criteria
 func (re *RuleEngine) eventMatchesCriteria(event models.Event, criteria map[string]interface{}) (bool, error) {
 	for field, conditionValue := range criteria {
-		// Skip the "count" field as it's handled separately
-		if field == "count" {
+		// Skip the event count field as it's handled separately
+		if field == "$eventCount" {
 			continue
 		}
 
@@ -674,71 +688,71 @@ func isInArray(value interface{}, array interface{}) bool {
 	return false
 }
 
-// evaluateCountCriteria checks if the number of events meets the count criteria
-func (re *RuleEngine) evaluateCountCriteria(countCriteria map[string]interface{}, events []models.Event, metadata map[string]interface{}) (bool, error) {
-	re.Logger.Debug("Evaluating count criteria against %d events", len(events))
+// evaluateEventCountCriteria checks if the number of events meets the count criteria
+func (re *RuleEngine) evaluateEventCountCriteria(eventCountCriteria map[string]interface{}, events []models.Event, metadata map[string]interface{}) (bool, error) {
+	re.Logger.Debug("Evaluating event count criteria against %d events", len(events))
 
 	// First, filter events based on other criteria in the parent object
 	filteredEvents, err := re.filterEvents(map[string]interface{}{}, events)
 	if err != nil {
-		re.Logger.Error("Error filtering events for count criteria: %v", err)
+		re.Logger.Error("Error filtering events for event count criteria: %v", err)
 		return false, err
 	}
 
 	count := len(filteredEvents)
 	metadata["event_count"] = count
-	re.Logger.Debug("Count criteria: working with %d filtered events", count)
+	re.Logger.Debug("Event count criteria: working with %d filtered events", count)
 
-	// Evaluate the count criteria
-	for operator, value := range countCriteria {
+	// Evaluate the event count criteria
+	for operator, value := range eventCountCriteria {
 		compareValue, err := toFloat64(value)
 		if err != nil {
-			re.Logger.Error("Invalid count comparison value: %v", err)
-			return false, fmt.Errorf("invalid count comparison value: %w", err)
+			re.Logger.Error("Invalid event count comparison value: %v", err)
+			return false, fmt.Errorf("invalid event count comparison value: %w", err)
 		}
 
 		floatCount := float64(count)
-		re.Logger.Debug("Evaluating count operator %s: %v %s %v",
+		re.Logger.Debug("Evaluating event count operator %s: %v %s %v",
 			operator, floatCount, operator, compareValue)
 
 		switch operator {
 		case "$eq":
 			if floatCount != compareValue {
-				re.Logger.Debug("Count criterion not met: %v != %v", floatCount, compareValue)
+				re.Logger.Debug("Event count criterion not met: %v != %v", floatCount, compareValue)
 				return false, nil
 			}
 		case "$ne":
 			if floatCount == compareValue {
-				re.Logger.Debug("Count criterion not met: %v == %v", floatCount, compareValue)
+				re.Logger.Debug("Event count criterion not met: %v == %v", floatCount, compareValue)
 				return false, nil
 			}
 		case "$gt":
 			if floatCount <= compareValue {
-				re.Logger.Debug("Count criterion not met: %v <= %v", floatCount, compareValue)
+				re.Logger.Debug("Event count criterion not met: %v <= %v", floatCount, compareValue)
 				return false, nil
 			}
 		case "$gte":
 			if floatCount < compareValue {
-				re.Logger.Debug("Count criterion not met: %v < %v", floatCount, compareValue)
+				re.Logger.Debug("Event count criterion not met: %v < %v", floatCount, compareValue)
 				return false, nil
 			}
 		case "$lt":
 			if floatCount >= compareValue {
-				re.Logger.Debug("Count criterion not met: %v >= %v", floatCount, compareValue)
+				re.Logger.Debug("Event count criterion not met: %v >= %v", floatCount, compareValue)
 				return false, nil
 			}
 		case "$lte":
 			if floatCount > compareValue {
-				re.Logger.Debug("Count criterion not met: %v > %v", floatCount, compareValue)
+				re.Logger.Debug("Event count criterion not met: %v > %v", floatCount, compareValue)
 				return false, nil
 			}
 		default:
-			re.Logger.Error("Unsupported count operator: %s", operator)
-			return false, fmt.Errorf("unsupported count operator: %s", operator)
+			re.Logger.Error("Unsupported event count operator: %s", operator)
+			return false, fmt.Errorf("unsupported event count operator: %s", operator)
 		}
 	}
 
-	re.Logger.Debug("Count criteria met")
+	re.Logger.Debug("Event count criteria met")
 	return true, nil
 }
 
