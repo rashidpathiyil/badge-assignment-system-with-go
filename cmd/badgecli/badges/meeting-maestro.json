@@ -4,14 +4,12 @@
   "image_url": "https://example.com/badges/meeting-maestro.png",
   "flow_definition": {
     "criteria": {
-      "$timePeriod": {
-        "periodCount": {
-          "$gte": 1
-        },
-        "periodType": "month"
-      },
       "$eventCount": {
         "$gte": 10
+      },
+      "timestamp": {
+        "$gte": "$NOW(-30d)",
+        "$lte": "$NOW()"
       }
     },
     "event": "meeting-attendance"

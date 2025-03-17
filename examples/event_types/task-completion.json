@@ -1,0 +1,35 @@
+{
+  "name": "Task Completion",
+  "description": "User completed a task",
+  "schema": {
+    "properties": {
+      "completed_at": {
+        "format": "date-time",
+        "type": "string"
+      },
+      "priority": {
+        "enum": [
+          "low",
+          "medium",
+          "high"
+        ],
+        "type": "string"
+      },
+      "task_id": {
+        "type": "string"
+      },
+      "title": {
+        "type": "string"
+      },
+      "user_id": {
+        "type": "string"
+      }
+    },
+    "required": [
+      "user_id",
+      "task_id",
+      "completed_at"
+    ],
+    "type": "object"
+  }
+}

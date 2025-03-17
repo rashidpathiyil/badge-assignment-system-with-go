@@ -1,0 +1,29 @@
+{
+  "name": "Check Out",
+  "description": "User check-out event, used for attendance tracking",
+  "schema": {
+    "properties": {
+      "date": {
+        "format": "date",
+        "type": "string"
+      },
+      "location": {
+        "type": "string"
+      },
+      "time": {
+        "description": "The time of check-out in HH:MM:SS format",
+        "format": "time",
+        "type": "string"
+      },
+      "user_id": {
+        "type": "string"
+      }
+    },
+    "required": [
+      "user_id",
+      "time",
+      "date"
+    ],
+    "type": "object"
+  }
+}

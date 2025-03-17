@@ -1,0 +1,20 @@
+{
+  "name": "Bug Hunter",
+  "description": "Reported 5+ issues that got fixed.",
+  "image_url": "https://example.com/badges/bug-hunter.png",
+  "flow_definition": {
+    "criteria": {
+      "$eventCount": {
+        "$gte": 5
+      },
+      "timestamp": {
+        "$gte": "$NOW(-90d)",
+        "$lte": "$NOW()"
+      },
+      "payload": {
+        "status": "fixed"
+      }
+    },
+    "event": "bug-report"
+  }
+}

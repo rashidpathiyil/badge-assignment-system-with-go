@@ -4,13 +4,12 @@
   "image_url": "https://example.com/badges/early-bird.png",
   "flow_definition": {
     "criteria": {
-      "$timePeriod": {
-        "count": {
-          "$gte": 5
-        },
-        "excludeHolidays": false,
-        "excludeWeekends": false,
-        "periodType": "day"
+      "$eventCount": {
+        "$gte": 5
+      },
+      "timestamp": {
+        "$gte": "$NOW(-5d)",
+        "$lte": "$NOW()"
       },
       "payload": {
         "time": {

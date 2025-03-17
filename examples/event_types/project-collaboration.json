@@ -1,0 +1,39 @@
+{
+  "name": "Project Collaboration",
+  "description": "User collaborated on a team project",
+  "schema": {
+    "properties": {
+      "contribution_type": {
+        "enum": [
+          "code",
+          "review",
+          "documentation",
+          "design",
+          "testing",
+          "meeting"
+        ],
+        "type": "string"
+      },
+      "project_id": {
+        "type": "string"
+      },
+      "project_name": {
+        "type": "string"
+      },
+      "timestamp": {
+        "format": "date-time",
+        "type": "string"
+      },
+      "user_id": {
+        "type": "string"
+      }
+    },
+    "required": [
+      "user_id",
+      "project_id",
+      "contribution_type",
+      "timestamp"
+    ],
+    "type": "object"
+  }
+}

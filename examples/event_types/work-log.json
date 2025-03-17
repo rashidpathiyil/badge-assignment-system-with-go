@@ -1,0 +1,36 @@
+{
+  "name": "Work Log",
+  "description": "User work log entry for tracking hours worked",
+  "schema": {
+    "properties": {
+      "date": {
+        "format": "date",
+        "type": "string"
+      },
+      "description": {
+        "type": "string"
+      },
+      "hours": {
+        "description": "Number of hours worked",
+        "minimum": 0.25,
+        "type": "number"
+      },
+      "is_overtime": {
+        "default": false,
+        "type": "boolean"
+      },
+      "task_id": {
+        "type": "string"
+      },
+      "user_id": {
+        "type": "string"
+      }
+    },
+    "required": [
+      "user_id",
+      "hours",
+      "date"
+    ],
+    "type": "object"
+  }
+}

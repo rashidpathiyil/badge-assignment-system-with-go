@@ -1,8 +1,8 @@
 package main
 
 import (
+	"embed"
 	"fmt"
-	"log"
 	"os"
 
 	"github.com/joho/godotenv"
@@ -11,67 +11,23 @@ import (
 )
 
 var (
-	cfgFile     string
-	serverURL   string
-	badgesDir   string
-	description string
-	imageURL    string
-	flowDefFile string
-	schemaFile  string
+	cfgFile   string
+	serverURL string
+	badgesDir string
+	outputDir string
 )
 
-// Command variables - Badge Commands
-var listCmd = &cobra.Command{
-	Use:   "list",
-	Short: "List all badges in the system",
-	Run: func(cmd *cobra.Command, args []string) {
-		client := NewAPIClient(serverURL)
-		if err := List(client); err != nil {
-			fmt.Printf("Error: %v\n", err)
-			os.Exit(1)
-		}
-	},
-}
+// Embed all JSON files from the badges directory
+//
+//go:embed badges/*.json badges/event_types/*.json
+var exampleFS embed.FS
 
-var getCmd = &cobra.Command{
-	Use:   "get [badge_id]",
-	Short: "Get details of a badge by ID",
-	Args:  cobra.ExactArgs(1),
+// Command variables - Import/Export Commands
+var listExamplesCmd = &cobra.Command{
+	Use:   "list-examples",
+	Short: "List all example badges and event types included with the CLI",
 	Run: func(cmd *cobra.Command, args []string) {
-		client := NewAPIClient(serverURL)
-		if err := GetBadge(client, args[0]); err != nil {
-			fmt.Printf("Error: %v\n", err)
-			os.Exit(1)
-		}
-	},
-}
-
-var addCmd = &cobra.Command{
-	Use:   "add [badge_name]",
-	Short: "Add a new badge to the system",
-	Args:  cobra.ExactArgs(1),
-	Run: func(cmd *cobra.Command, args []string) {
-		client := NewAPIClient(serverURL)
-		if err := AddBadge(client, args[0], description, imageURL, flowDefFile); err != nil {
-			fmt.Printf("Error: %v\n", err)
-			os.Exit(1)
-		}
-	},
-}
-
-var savePredefCmd = &cobra.Command{
-	Use:   "save-predefined [badge_key]",
-	Short: "Save a predefined badge to the system",
-	Args:  cobra.MaximumNArgs(1),
-	Run: func(cmd *cobra.Command, args []string) {
-		if len(args) == 0 {
-			// List predefined badges instead
-			ListPredefinedBadges()
-			return
-		}
-
-		client := NewAPIClient(serverURL)
-		if err := SavePredefinedBadge(client, args[0]); err != nil {
+		if err := ListExampleBadgesAndEventTypes(); err != nil {
 			fmt.Printf("Error: %v\n", err)
 			os.Exit(1)
 		}
@@ -108,88 +64,15 @@ var exportCmd = &cobra.Command{
 	},
 }
 
-var saveAllPredefCmd = &cobra.Command{
-	Use:   "save-all-predefined",
-	Short: "Save all predefined badges to JSON files in the badges directory",
+var exportExamplesCmd = &cobra.Command{
+	Use:   "export-examples",
+	Short: "Export all example badges and event types to a directory",
 	Run: func(cmd *cobra.Command, args []string) {
-		if err := SaveAllPredefinedBadges(badgesDir); err != nil {
+		if err := ExportExampleBadgesAndEventTypes(outputDir); err != nil {
 			fmt.Printf("Error: %v\n", err)
 			os.Exit(1)
 		}
-		fmt.Printf("All predefined badges saved to %s\n", badgesDir)
-	},
-}
-
-var listPredefinedCmd = &cobra.Command{
-	Use:   "list-predefined",
-	Short: "List all predefined badges",
-	Run: func(cmd *cobra.Command, args []string) {
-		ListPredefinedBadges()
-	},
-}
-
-// Command variables - Event Type Commands
-var listEventTypesCmd = &cobra.Command{
-	Use:   "list-event-types",
-	Short: "List all event types in the system",
-	Run: func(cmd *cobra.Command, args []string) {
-		client := NewAPIClient(serverURL)
-		if err := ListEventTypes(client); err != nil {
-			fmt.Printf("Error: %v\n", err)
-			os.Exit(1)
-		}
-	},
-}
-
-var getEventTypeCmd = &cobra.Command{
-	Use:   "get-event-type [event_type_id]",
-	Short: "Get details of an event type by ID",
-	Args:  cobra.ExactArgs(1),
-	Run: func(cmd *cobra.Command, args []string) {
-		client := NewAPIClient(serverURL)
-		if err := GetEventType(client, args[0]); err != nil {
-			fmt.Printf("Error: %v\n", err)
-			os.Exit(1)
-		}
-	},
-}
-
-var addEventTypeCmd = &cobra.Command{
-	Use:   "add-event-type [event_type_name]",
-	Short: "Add a new event type to the system",
-	Args:  cobra.ExactArgs(1),
-	Run: func(cmd *cobra.Command, args []string) {
-		client := NewAPIClient(serverURL)
-		if err := AddEventType(client, args[0], description, schemaFile); err != nil {
-			fmt.Printf("Error: %v\n", err)
-			os.Exit(1)
-		}
-	},
-}
-
-var updateEventTypeCmd = &cobra.Command{
-	Use:   "update-event-type [event_type_id]",
-	Short: "Update an existing event type",
-	Args:  cobra.ExactArgs(1),
-	Run: func(cmd *cobra.Command, args []string) {
-		client := NewAPIClient(serverURL)
-		if err := UpdateEventType(client, args[0], cmd.Flag("name").Value.String(), description, schemaFile); err != nil {
-			fmt.Printf("Error: %v\n", err)
-			os.Exit(1)
-		}
-	},
-}
-
-var deleteEventTypeCmd = &cobra.Command{
-	Use:   "delete-event-type [event_type_id]",
-	Short: "Delete an event type",
-	Args:  cobra.ExactArgs(1),
-	Run: func(cmd *cobra.Command, args []string) {
-		client := NewAPIClient(serverURL)
-		if err := DeleteEventType(client, args[0]); err != nil {
-			fmt.Printf("Error: %v\n", err)
-			os.Exit(1)
-		}
+		fmt.Printf("All example badges and event types exported to %s\n", outputDir)
 	},
 }
 
@@ -223,56 +106,93 @@ var exportEventTypeCmd = &cobra.Command{
 	},
 }
 
-var listPredefinedEventTypesCmd = &cobra.Command{
-	Use:   "list-predefined-event-types",
-	Short: "List all predefined event types",
+// New commands for listing and exporting all items
+var listBadgesCmd = &cobra.Command{
+	Use:   "list-badges",
+	Short: "List all badges in the system",
 	Run: func(cmd *cobra.Command, args []string) {
-		ListPredefinedEventTypes()
-	},
-}
-
-var savePredefEventTypeCmd = &cobra.Command{
-	Use:   "save-predefined-event-type [event_type_key]",
-	Short: "Save a predefined event type to the system",
-	Args:  cobra.MaximumNArgs(1),
-	Run: func(cmd *cobra.Command, args []string) {
-		if len(args) == 0 {
-			// List predefined event types instead
-			ListPredefinedEventTypes()
-			return
-		}
-
 		client := NewAPIClient(serverURL)
-		if err := SavePredefinedEventType(client, args[0]); err != nil {
+		if err := ListBadges(client); err != nil {
 			fmt.Printf("Error: %v\n", err)
 			os.Exit(1)
 		}
 	},
 }
 
-var saveAllEventTypesCmd = &cobra.Command{
-	Use:   "save-all-event-types",
-	Short: "Save all predefined event types to JSON files in a directory",
+var listEventTypesCmd = &cobra.Command{
+	Use:   "list-event-types",
+	Short: "List all event types in the system",
 	Run: func(cmd *cobra.Command, args []string) {
-		eventTypesDir := badgesDir + "/event_types"
-		if err := SaveAllPredefinedEventTypes(eventTypesDir); err != nil {
+		client := NewAPIClient(serverURL)
+		if err := ListEventTypes(client); err != nil {
 			fmt.Printf("Error: %v\n", err)
 			os.Exit(1)
 		}
-		fmt.Printf("All predefined event types saved to %s\n", eventTypesDir)
 	},
 }
 
-func main() {
-	err := godotenv.Load()
-	if err != nil {
-		log.Println("Warning: Error loading .env file:", err)
-	}
-
-	Execute()
+var exportAllBadgesCmd = &cobra.Command{
+	Use:   "export-all-badges [output_directory]",
+	Short: "Export all badges from the system to a directory",
+	Args:  cobra.ExactArgs(1),
+	Run: func(cmd *cobra.Command, args []string) {
+		client := NewAPIClient(serverURL)
+		if err := ExportAllBadges(client, args[0]); err != nil {
+			fmt.Printf("Error: %v\n", err)
+			os.Exit(1)
+		}
+	},
 }
 
-// Execute adds all child commands to the root command and sets flags appropriately.
+var exportAllEventTypesCmd = &cobra.Command{
+	Use:   "export-all-event-types [output_directory]",
+	Short: "Export all event types from the system to a directory",
+	Args:  cobra.ExactArgs(1),
+	Run: func(cmd *cobra.Command, args []string) {
+		client := NewAPIClient(serverURL)
+		if err := ExportAllEventTypes(client, args[0]); err != nil {
+			fmt.Printf("Error: %v\n", err)
+			os.Exit(1)
+		}
+	},
+}
+
+// New commands for importing all items
+var importAllBadgesCmd = &cobra.Command{
+	Use:   "import-all-badges [directory_path]",
+	Short: "Import all badge definitions from a directory",
+	Args:  cobra.ExactArgs(1),
+	Run: func(cmd *cobra.Command, args []string) {
+		client := NewAPIClient(serverURL)
+		if err := ImportAllBadges(client, args[0]); err != nil {
+			fmt.Printf("Error: %v\n", err)
+			os.Exit(1)
+		}
+	},
+}
+
+var importAllEventTypesCmd = &cobra.Command{
+	Use:   "import-all-event-types [directory_path]",
+	Short: "Import all event type definitions from a directory",
+	Args:  cobra.ExactArgs(1),
+	Run: func(cmd *cobra.Command, args []string) {
+		client := NewAPIClient(serverURL)
+		if err := ImportAllEventTypes(client, args[0]); err != nil {
+			fmt.Printf("Error: %v\n", err)
+			os.Exit(1)
+		}
+	},
+}
+
+// rootCmd represents the base command when called without any subcommands
+var rootCmd = &cobra.Command{
+	Use:   "badgecli",
+	Short: "Badge CLI provides import and export functionality for badges and event types",
+	Long: `Badge CLI is a tool to manage badges and event types in the badge assignment system.
+It helps with importing, exporting, and providing examples of badge and event type definitions.`,
+}
+
+// Execute adds all child commands to the root command and sets flags appropriately
 func Execute() {
 	if err := rootCmd.Execute(); err != nil {
 		fmt.Println(err)
@@ -280,95 +200,65 @@ func Execute() {
 	}
 }
 
-var rootCmd = &cobra.Command{
-	Use:   "badgecli",
-	Short: "A CLI for managing badges in the Badge Assignment System",
-	Long: `A command line interface for managing badges in the Badge Assignment System. 
-This tool allows you to create, list, view, update, and delete badges and event types, as well as
-import and export badge and event type definitions to and from JSON files.`,
-}
-
 func init() {
 	cobra.OnInitialize(initConfig)
 
+	// Global flags
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.badgecli.yaml)")
 	rootCmd.PersistentFlags().StringVar(&serverURL, "server", "http://localhost:8080", "server URL")
-	rootCmd.PersistentFlags().StringVar(&badgesDir, "badges-dir", "./badges", "directory for badge definitions")
 
-	// Add specific flags for badge commands
-	addCmd.Flags().StringVarP(&description, "description", "d", "", "Badge description")
-	addCmd.Flags().StringVarP(&imageURL, "image", "i", "", "Badge image URL")
-	addCmd.Flags().StringVarP(&flowDefFile, "flow", "f", "", "Path to flow definition JSON file")
+	// Export flags
+	exportExamplesCmd.Flags().StringVar(&outputDir, "output-dir", "./examples", "directory to export examples to")
 
-	// Add specific flags for event type commands
-	addEventTypeCmd.Flags().StringVarP(&description, "description", "d", "", "Event type description")
-	addEventTypeCmd.Flags().StringVarP(&schemaFile, "schema", "s", "", "Path to schema JSON file")
-
-	updateEventTypeCmd.Flags().String("name", "", "New name for the event type")
-	updateEventTypeCmd.Flags().StringVarP(&description, "description", "d", "", "Event type description")
-	updateEventTypeCmd.Flags().StringVarP(&schemaFile, "schema", "s", "", "Path to schema JSON file")
-
-	// Add badge commands
-	rootCmd.AddCommand(listCmd)
-	rootCmd.AddCommand(getCmd)
-	rootCmd.AddCommand(addCmd)
-	rootCmd.AddCommand(savePredefCmd)
+	// Add commands
+	rootCmd.AddCommand(listExamplesCmd)
 	rootCmd.AddCommand(importCmd)
 	rootCmd.AddCommand(exportCmd)
-	rootCmd.AddCommand(saveAllPredefCmd)
-	rootCmd.AddCommand(listPredefinedCmd)
-
-	// Add event type commands
-	rootCmd.AddCommand(listEventTypesCmd)
-	rootCmd.AddCommand(getEventTypeCmd)
-	rootCmd.AddCommand(addEventTypeCmd)
-	rootCmd.AddCommand(updateEventTypeCmd)
-	rootCmd.AddCommand(deleteEventTypeCmd)
+	rootCmd.AddCommand(exportExamplesCmd)
 	rootCmd.AddCommand(importEventTypeCmd)
 	rootCmd.AddCommand(exportEventTypeCmd)
-	rootCmd.AddCommand(listPredefinedEventTypesCmd)
-	rootCmd.AddCommand(savePredefEventTypeCmd)
-	rootCmd.AddCommand(saveAllEventTypesCmd)
+
+	// Add new commands
+	rootCmd.AddCommand(listBadgesCmd)
+	rootCmd.AddCommand(listEventTypesCmd)
+	rootCmd.AddCommand(exportAllBadgesCmd)
+	rootCmd.AddCommand(exportAllEventTypesCmd)
+	rootCmd.AddCommand(importAllBadgesCmd)
+	rootCmd.AddCommand(importAllEventTypesCmd)
 }
 
-// initConfig reads in config file and ENV variables if set.
+// initConfig reads in config file and ENV variables if set
 func initConfig() {
 	if cfgFile != "" {
-		// Use config file from the flag.
+		// Use config file from the flag
 		viper.SetConfigFile(cfgFile)
 	} else {
-		// Find home directory.
+		// Find home directory
 		home, err := os.UserHomeDir()
 		if err != nil {
 			fmt.Println(err)
 			os.Exit(1)
 		}
 
-		// Search config in home directory with name ".badgecli" (without extension).
+		// Search config in home directory with name ".badgecli" (without extension)
 		viper.AddConfigPath(home)
 		viper.SetConfigName(".badgecli")
 	}
 
-	viper.AutomaticEnv() // read in environment variables that match
-
-	// If a config file is found, read it in.
+	// If a config file is found, read it in
 	if err := viper.ReadInConfig(); err == nil {
 		fmt.Println("Using config file:", viper.ConfigFileUsed())
 	}
 
-	// If environment variables are set, use them
-	if os.Getenv("BADGE_SERVER_URL") != "" {
-		serverURL = os.Getenv("BADGE_SERVER_URL")
-	}
+	// Load .env file if present
+	_ = godotenv.Load()
 
-	if os.Getenv("BADGE_DEFINITIONS_DIR") != "" {
-		badgesDir = os.Getenv("BADGE_DEFINITIONS_DIR")
+	// Read server URL from environment variable if set
+	if serverEnv := os.Getenv("BADGE_SERVER_URL"); serverEnv != "" {
+		serverURL = serverEnv
 	}
+}
 
-	// Ensure the badges directory exists
-	if _, err := os.Stat(badgesDir); os.IsNotExist(err) {
-		if err := os.MkdirAll(badgesDir, 0755); err != nil {
-			log.Fatalf("Error creating badges directory: %v", err)
-		}
-	}
+func main() {
+	Execute()
 }

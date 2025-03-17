@@ -1,6 +1,15 @@
 # Badge CLI
 
-A command-line interface for managing badges in the Badge Assignment System.
+Badge CLI is a command line tool for importing and exporting badge and event type definitions to and from the Badge Assignment System.
+
+## Overview
+
+The Badge CLI provides the following functionality:
+
+- Import badge and event type definitions from JSON files (individually or in bulk)
+- Export badge and event type definitions to JSON files (individually or in bulk)
+- View and export example badge and event type definitions
+- List all badges and event types in the system
 
 ## Installation
 
@@ -15,239 +24,197 @@ Before using the Badge CLI, ensure you have Go installed on your system.
 
 2. Build the CLI tool:
    ```bash
-   go build -o badgecli
+   go build -o badgecli cmd/badgecli/*.go
    ```
 
 ## Usage
 
-The Badge CLI provides various commands to manage badges and event types in the system. By default, the CLI connects to a server running at http://localhost:8080, but you can specify a different server URL using the `--server` flag.
+### Example Commands
 
-The CLI interacts with both public and admin API endpoints:
-- Public endpoints: Used for listing badges and viewing badge details
-- Admin endpoints: Used for creating, updating, and deleting badges and event types
-
-### Global Flags
-
-- `--server`: Server URL (default "http://localhost:8080")
-- `--badges-dir`: Directory for badge and event type definitions (default "./badges")
-- `--config`: Config file (default is $HOME/.badgecli.yaml)
-
-### Badge Commands
-
-#### List Badges
-
-List all badges in the system:
+#### List examples included with the CLI
 
 ```bash
-./badgecli list
+./badgecli list-examples
 ```
 
-#### Get Badge
-
-Get details of a badge by ID:
+#### Export examples to a directory
 
 ```bash
-./badgecli get 1
+./badgecli export-examples --output-dir ./my-examples
 ```
 
-#### Add Badge
-
-Add a new badge to the system:
+#### Import a badge definition
 
 ```bash
-./badgecli add "New Badge" --description "Description of the badge" --image "https://example.com/badge.png" --flow flow_definition.json
+./badgecli import /path/to/my-badge.json
 ```
 
-When adding a badge, the CLI automatically checks if the required event types exist in the system. If any required event types are missing, the CLI will prompt you to install them before creating the badge.
-
-#### Save Predefined Badge
-
-Save a predefined badge to the system:
+#### Import all badge definitions from a directory
 
 ```bash
-./badgecli save-predefined early-bird
+./badgecli import-all-badges ./my-badges
 ```
 
-To see a list of available predefined badges:
+#### Export a badge definition by ID
 
 ```bash
-./badgecli save-predefined
+./badgecli export 123 /path/to/exported-badge.json
 ```
 
-Just like with the `add` command, the CLI will check for required event types and prompt you to install any that are missing.
-
-#### List Predefined Badges
-
-List all available predefined badges:
+#### Import an event type definition
 
 ```bash
-./badgecli list-predefined
+./badgecli import-event-type /path/to/my-event-type.json
 ```
 
-This will display a table showing the key, name, and description of all predefined badges.
-
-#### Save All Predefined Badges
-
-Save all predefined badges to JSON files:
+#### Import all event type definitions from a directory
 
 ```bash
-./badgecli save-all-predefined
+./badgecli import-all-event-types ./my-event-types
 ```
 
-This will create JSON files for each predefined badge in the badges directory.
-
-#### Import Badge
-
-Import a badge from a JSON file:
+#### Export an event type definition by ID
 
 ```bash
-./badgecli import badge_file.json
+./badgecli export-event-type 456 /path/to/exported-event-type.json
 ```
 
-When importing a badge, the CLI will check for required event types and prompt you to install any that are missing, ensuring all dependencies are properly set up.
-
-#### Export Badge
-
-Export a badge to a JSON file:
+#### List all badges in the system
 
 ```bash
-./badgecli export 1 exported_badge.json
+./badgecli list-badges
 ```
 
-### Event Type Commands
-
-#### List Event Types
-
-List all event types in the system:
+#### List all event types in the system
 
 ```bash
 ./badgecli list-event-types
 ```
 
-#### Get Event Type
-
-Get details of an event type by ID:
+#### Export all badges from the system to a directory
 
 ```bash
-./badgecli get-event-type 1
+./badgecli export-all-badges ./my-badges
 ```
 
-#### Add Event Type
-
-Add a new event type to the system:
+#### Export all event types from the system to a directory
 
 ```bash
-./badgecli add-event-type "New Event Type" --description "Description of the event type" --schema schema.json
+./badgecli export-all-event-types ./my-event-types
 ```
 
-#### Update Event Type
+## Badge and Event Type Definitions
 
-Update an existing event type:
+The CLI includes example badge and event type definitions in the `badges` directory. These examples showcase recommended patterns and best practices for defining badges and event types.
 
-```bash
-./badgecli update-event-type 1 --name "Updated Name" --description "Updated description" --schema updated_schema.json
+### Badge Definition Examples
+
+Badges are defined with the following format:
+
+```json
+{
+  "name": "Early Bird",
+  "description": "Checked in before 9 AM for 5 consecutive days",
+  "image_url": "https://example.com/badges/early-bird.png",
+  "flow_definition": {
+    "operator": "$count",
+    "event_type": "check_in",
+    "conditions": {
+      "timestamp": {
+        "operator": "$lt",
+        "value": "09:00:00"
+      }
+    },
+    "min_count": 5,
+    "time_window": "5d",
+    "consecutive": true
+  }
+}
 ```
 
-#### Delete Event Type
+Alternative format with $NOW dynamic variable support:
 
-Delete an event type:
-
-```bash
-./badgecli delete-event-type 1
+```json
+{
+  "name": "Early Bird",
+  "description": "Checked in before 9 AM for 5 consecutive days.",
+  "image_url": "https://example.com/badges/early-bird.png",
+  "flow_definition": {
+    "criteria": {
+      "$eventCount": {
+        "$gte": 5
+      },
+      "timestamp": {
+        "$gte": "$NOW(-5d)",
+        "$lte": "$NOW()"
+      },
+      "payload": {
+        "time": {
+          "$lt": "09:00:00"
+        }
+      }
+    },
+    "event": "check-in"
+  }
+}
 ```
 
-#### Import Event Type
+### Event Type Definition Example
 
-Import an event type from a JSON file:
+Event types are defined with the following format:
 
-```bash
-./badgecli import-event-type event_type_file.json
+```json
+{
+  "name": "check_in",
+  "description": "User check-in event, used for attendance tracking",
+  "schema": {
+    "type": "object",
+    "properties": {
+      "user_id": {
+        "type": "string"
+      },
+      "timestamp": {
+        "type": "string",
+        "format": "date-time"
+      },
+      "location": {
+        "type": "string"
+      },
+      "time": {
+        "description": "The time of check-in in HH:MM:SS format",
+        "format": "time",
+        "type": "string"
+      },
+      "date": {
+        "format": "date",
+        "type": "string"
+      }
+    },
+    "required": ["user_id", "timestamp"]
+  }
+}
 ```
 
-#### Export Event Type
+## Configuration
 
-Export an event type to a JSON file:
+The CLI can be configured using:
 
-```bash
-./badgecli export-event-type 1 exported_event_type.json
-```
-
-#### List Predefined Event Types
-
-List all predefined event types:
-
-```bash
-./badgecli list-predefined-event-types
-```
-
-#### Save Predefined Event Type
-
-Save a predefined event type to the system:
-
-```bash
-./badgecli save-predefined-event-type check-in
-```
-
-#### Save All Predefined Event Types
-
-Save all predefined event types to JSON files:
-
-```bash
-./badgecli save-all-event-types
-```
-
-This will create JSON files for each predefined event type in the badges/event_types directory.
-
-## Predefined Event Types
-
-The CLI includes the following predefined event types that are required for the badge system:
-
-1. **check-in**: User check-in event, used for attendance tracking
-2. **check-out**: User check-out event, used for attendance tracking
-3. **work-log**: User work log entry for tracking hours worked
-4. **meeting-attendance**: User attendance at a meeting
-5. **bug-report**: User submitted a bug report
-6. **task-completion**: User completed a task
-7. **project-collaboration**: User collaborated on a team project
-
-## Predefined Badges
-
-The CLI includes the following predefined badges that can be added to the system:
-
-1. **early-bird**: Checked in before 9 AM for 5 consecutive days.
-2. **workaholic**: Logged 40+ hours in a week.
-3. **consistency-king**: Checked in & out without missing a day for a month.
-4. **team-player**: Collaborated on 5+ team projects in a month.
-5. **overtime-warrior**: Logged extra 10 hours in a week.
-6. **meeting-maestro**: Attended 10+ meetings in a month.
-7. **bug-hunter**: Reported 5+ issues that got fixed.
-8. **task-master**: Completed 50+ tasks in a month.
-
-## Environment Variables
-
-The CLI can be configured using environment variables:
-
-- `BADGE_SERVER_URL`: The URL of the badge server
-- `BADGE_DEFINITIONS_DIR`: Directory to store badge definitions
-
-You can set these variables in a `.env` file in the current directory.
-
-## Example Workflow
-
-1. Set up event types for the badge system:
+1. Command line flags:
    ```bash
-   ./badgecli save-all-event-types
+   ./badgecli --server http://api.example.com
    ```
 
-2. Add badges to the system (the CLI will automatically prompt for any missing event types):
+2. Environment variables:
    ```bash
-   ./badgecli save-predefined early-bird
-   ./badgecli save-predefined workaholic
+   export BADGE_SERVER_URL=http://api.example.com
    ```
 
-   The CLI will detect that these badges require specific event types and prompt you to install them if they don't exist.
+3. Configuration file (default: `$HOME/.badgecli.yaml`):
+   ```yaml
+   server: http://api.example.com
+   ```
 
-3. List all badges in the system:
-   ```bash
-   ./badgecli list
-   ``` 
+To specify a custom configuration file:
+```bash
+./badgecli --config /path/to/config.yaml
+``` 

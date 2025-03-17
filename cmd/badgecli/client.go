@@ -66,13 +66,6 @@ type NewEventTypeRequest struct {
 	Schema      map[string]interface{} `json:"schema"`
 }
 
-// UpdateEventTypeRequest is used for updating an existing event type
-type UpdateEventTypeRequest struct {
-	Name        string                 `json:"name,omitempty"`
-	Description string                 `json:"description,omitempty"`
-	Schema      map[string]interface{} `json:"schema,omitempty"`
-}
-
 // NewAPIClient creates a new API client
 func NewAPIClient(baseURL string) *APIClient {
 	return &APIClient{
@@ -83,11 +76,9 @@ func NewAPIClient(baseURL string) *APIClient {
 	}
 }
 
-// Badge API Methods
-
-// GetBadges gets all badges from the API
+// GetBadges gets all badges from the system
 func (c *APIClient) GetBadges() ([]Badge, error) {
-	resp, err := c.HTTPClient.Get(c.BaseURL + "/api/v1/badges")
+	resp, err := c.HTTPClient.Get(fmt.Sprintf("%s/api/v1/badges", c.BaseURL))
 	if err != nil {
 		return nil, fmt.Errorf("error making request: %w", err)
 	}
@@ -106,30 +97,9 @@ func (c *APIClient) GetBadges() ([]Badge, error) {
 	return badges, nil
 }
 
-// GetBadgeByID gets a badge by ID
-func (c *APIClient) GetBadgeByID(id string) (*Badge, error) {
-	resp, err := c.HTTPClient.Get(fmt.Sprintf("%s/api/v1/badges/%s", c.BaseURL, id))
-	if err != nil {
-		return nil, fmt.Errorf("error making request: %w", err)
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		body, _ := io.ReadAll(resp.Body)
-		return nil, fmt.Errorf("API error: %s - %s", resp.Status, string(body))
-	}
-
-	var badge Badge
-	if err := json.NewDecoder(resp.Body).Decode(&badge); err != nil {
-		return nil, fmt.Errorf("error decoding response: %w", err)
-	}
-
-	return &badge, nil
-}
-
 // GetBadgeWithCriteria gets a badge with its criteria by ID
 func (c *APIClient) GetBadgeWithCriteria(id string) (*BadgeWithCriteria, error) {
-	resp, err := c.HTTPClient.Get(fmt.Sprintf("%s/api/v1/admin/badges/%s/criteria", c.BaseURL, id))
+	resp, err := c.HTTPClient.Get(fmt.Sprintf("%s/api/v1/badges/%s/criteria", c.BaseURL, id))
 	if err != nil {
 		return nil, fmt.Errorf("error making request: %w", err)
 	}
@@ -152,11 +122,11 @@ func (c *APIClient) GetBadgeWithCriteria(id string) (*BadgeWithCriteria, error) 
 func (c *APIClient) CreateBadge(badge *NewBadgeRequest) (*BadgeWithCriteria, error) {
 	jsonData, err := json.Marshal(badge)
 	if err != nil {
-		return nil, fmt.Errorf("error marshaling request: %w", err)
+		return nil, fmt.Errorf("error serializing badge: %w", err)
 	}
 
 	resp, err := c.HTTPClient.Post(
-		c.BaseURL+"/api/v1/admin/badges",
+		fmt.Sprintf("%s/api/v1/badges", c.BaseURL),
 		"application/json",
 		bytes.NewBuffer(jsonData),
 	)
@@ -165,49 +135,22 @@ func (c *APIClient) CreateBadge(badge *NewBadgeRequest) (*BadgeWithCriteria, err
 	}
 	defer resp.Body.Close()
 
-	if resp.StatusCode != http.StatusCreated {
+	if resp.StatusCode != http.StatusCreated && resp.StatusCode != http.StatusOK {
 		body, _ := io.ReadAll(resp.Body)
 		return nil, fmt.Errorf("API error: %s - %s", resp.Status, string(body))
 	}
 
-	var created BadgeWithCriteria
-	if err := json.NewDecoder(resp.Body).Decode(&created); err != nil {
+	var badgeWithCriteria BadgeWithCriteria
+	if err := json.NewDecoder(resp.Body).Decode(&badgeWithCriteria); err != nil {
 		return nil, fmt.Errorf("error decoding response: %w", err)
 	}
 
-	return &created, nil
+	return &badgeWithCriteria, nil
 }
 
-// DeleteBadge deletes a badge by ID
-func (c *APIClient) DeleteBadge(id string) error {
-	req, err := http.NewRequest(
-		http.MethodDelete,
-		fmt.Sprintf("%s/api/v1/admin/badges/%s", c.BaseURL, id),
-		nil,
-	)
-	if err != nil {
-		return fmt.Errorf("error creating request: %w", err)
-	}
-
-	resp, err := c.HTTPClient.Do(req)
-	if err != nil {
-		return fmt.Errorf("error making request: %w", err)
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		body, _ := io.ReadAll(resp.Body)
-		return fmt.Errorf("API error: %s - %s", resp.Status, string(body))
-	}
-
-	return nil
-}
-
-// Event Type API Methods
-
-// GetEventTypes gets all event types
+// GetEventTypes gets all event types from the system
 func (c *APIClient) GetEventTypes() ([]EventType, error) {
-	resp, err := c.HTTPClient.Get(c.BaseURL + "/api/v1/admin/event-types")
+	resp, err := c.HTTPClient.Get(fmt.Sprintf("%s/api/v1/event-types", c.BaseURL))
 	if err != nil {
 		return nil, fmt.Errorf("error making request: %w", err)
 	}
@@ -228,7 +171,7 @@ func (c *APIClient) GetEventTypes() ([]EventType, error) {
 
 // GetEventTypeByID gets an event type by ID
 func (c *APIClient) GetEventTypeByID(id string) (*EventType, error) {
-	resp, err := c.HTTPClient.Get(fmt.Sprintf("%s/api/v1/admin/event-types/%s", c.BaseURL, id))
+	resp, err := c.HTTPClient.Get(fmt.Sprintf("%s/api/v1/event-types/%s", c.BaseURL, id))
 	if err != nil {
 		return nil, fmt.Errorf("error making request: %w", err)
 	}
@@ -251,11 +194,11 @@ func (c *APIClient) GetEventTypeByID(id string) (*EventType, error) {
 func (c *APIClient) CreateEventType(eventType *NewEventTypeRequest) (*EventType, error) {
 	jsonData, err := json.Marshal(eventType)
 	if err != nil {
-		return nil, fmt.Errorf("error marshaling request: %w", err)
+		return nil, fmt.Errorf("error serializing event type: %w", err)
 	}
 
 	resp, err := c.HTTPClient.Post(
-		c.BaseURL+"/api/v1/admin/event-types",
+		fmt.Sprintf("%s/api/v1/event-types", c.BaseURL),
 		"application/json",
 		bytes.NewBuffer(jsonData),
 	)
@@ -264,76 +207,15 @@ func (c *APIClient) CreateEventType(eventType *NewEventTypeRequest) (*EventType,
 	}
 	defer resp.Body.Close()
 
-	if resp.StatusCode != http.StatusCreated {
+	if resp.StatusCode != http.StatusCreated && resp.StatusCode != http.StatusOK {
 		body, _ := io.ReadAll(resp.Body)
 		return nil, fmt.Errorf("API error: %s - %s", resp.Status, string(body))
 	}
 
-	var created EventType
-	if err := json.NewDecoder(resp.Body).Decode(&created); err != nil {
+	var createdEventType EventType
+	if err := json.NewDecoder(resp.Body).Decode(&createdEventType); err != nil {
 		return nil, fmt.Errorf("error decoding response: %w", err)
 	}
 
-	return &created, nil
-}
-
-// UpdateEventType updates an existing event type
-func (c *APIClient) UpdateEventType(id string, eventType *UpdateEventTypeRequest) (*EventType, error) {
-	jsonData, err := json.Marshal(eventType)
-	if err != nil {
-		return nil, fmt.Errorf("error marshaling request: %w", err)
-	}
-
-	req, err := http.NewRequest(
-		http.MethodPut,
-		fmt.Sprintf("%s/api/v1/admin/event-types/%s", c.BaseURL, id),
-		bytes.NewBuffer(jsonData),
-	)
-	if err != nil {
-		return nil, fmt.Errorf("error creating request: %w", err)
-	}
-	req.Header.Set("Content-Type", "application/json")
-
-	resp, err := c.HTTPClient.Do(req)
-	if err != nil {
-		return nil, fmt.Errorf("error making request: %w", err)
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		body, _ := io.ReadAll(resp.Body)
-		return nil, fmt.Errorf("API error: %s - %s", resp.Status, string(body))
-	}
-
-	var updated EventType
-	if err := json.NewDecoder(resp.Body).Decode(&updated); err != nil {
-		return nil, fmt.Errorf("error decoding response: %w", err)
-	}
-
-	return &updated, nil
-}
-
-// DeleteEventType deletes an event type by ID
-func (c *APIClient) DeleteEventType(id string) error {
-	req, err := http.NewRequest(
-		http.MethodDelete,
-		fmt.Sprintf("%s/api/v1/admin/event-types/%s", c.BaseURL, id),
-		nil,
-	)
-	if err != nil {
-		return fmt.Errorf("error creating request: %w", err)
-	}
-
-	resp, err := c.HTTPClient.Do(req)
-	if err != nil {
-		return fmt.Errorf("error making request: %w", err)
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		body, _ := io.ReadAll(resp.Body)
-		return fmt.Errorf("API error: %s - %s", resp.Status, string(body))
-	}
-
-	return nil
+	return &createdEventType, nil
 }

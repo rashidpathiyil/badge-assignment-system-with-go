@@ -4,18 +4,16 @@
   "image_url": "https://example.com/badges/workaholic.png",
   "flow_definition": {
     "criteria": {
+      "timestamp": {
+        "$gte": "$NOW(-7d)",
+        "$lte": "$NOW()"
+      },
       "$aggregate": {
         "function": "sum",
         "property": "hours",
         "result": {
           "$gte": 40
         }
-      },
-      "$timePeriod": {
-        "periodCount": {
-          "$gte": 1
-        },
-        "periodType": "week"
       }
     },
     "event": "work-log"

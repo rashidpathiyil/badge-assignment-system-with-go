@@ -1,0 +1,17 @@
+{
+  "name": "Task Master",
+  "description": "Completed 50+ tasks in a month.",
+  "image_url": "https://example.com/badges/task-master.png",
+  "flow_definition": {
+    "criteria": {
+      "$eventCount": {
+        "$gte": 50
+      },
+      "timestamp": {
+        "$gte": "$NOW(-30d)",
+        "$lte": "$NOW()"
+      }
+    },
+    "event": "task-completion"
+  }
+}

@@ -1,0 +1,52 @@
+{
+  "name": "Bug Report",
+  "description": "User submitted a bug report",
+  "schema": {
+    "properties": {
+      "bug_id": {
+        "type": "string"
+      },
+      "description": {
+        "type": "string"
+      },
+      "reported_at": {
+        "format": "date-time",
+        "type": "string"
+      },
+      "severity": {
+        "enum": [
+          "low",
+          "medium",
+          "high",
+          "critical"
+        ],
+        "type": "string"
+      },
+      "status": {
+        "enum": [
+          "reported",
+          "in_progress",
+          "fixed",
+          "closed",
+          "wont_fix"
+        ],
+        "type": "string"
+      },
+      "title": {
+        "type": "string"
+      },
+      "user_id": {
+        "type": "string"
+      }
+    },
+    "required": [
+      "user_id",
+      "bug_id",
+      "title",
+      "severity",
+      "status",
+      "reported_at"
+    ],
+    "type": "object"
+  }
+}

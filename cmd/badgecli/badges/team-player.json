@@ -4,14 +4,12 @@
   "image_url": "https://example.com/badges/team-player.png",
   "flow_definition": {
     "criteria": {
-      "$timePeriod": {
-        "count": {
-          "$gte": 1
-        },
-        "periodType": "month"
-      },
-      "count": {
+      "$eventCount": {
         "$gte": 5
+      },
+      "timestamp": {
+        "$gte": "$NOW(-30d)",
+        "$lte": "$NOW()"
       }
     },
     "event": "project-collaboration"

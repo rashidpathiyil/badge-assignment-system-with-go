@@ -4,21 +4,19 @@
   "image_url": "https://example.com/badges/overtime-warrior.png",
   "flow_definition": {
     "criteria": {
+      "timestamp": {
+        "$gte": "$NOW(-7d)",
+        "$lte": "$NOW()"
+      },
+      "payload": {
+        "is_overtime": true
+      },
       "$aggregate": {
         "function": "sum",
         "property": "hours",
         "result": {
           "$gte": 10
         }
-      },
-      "$timePeriod": {
-        "count": {
-          "$gte": 1
-        },
-        "periodType": "week"
-      },
-      "payload": {
-        "is_overtime": true
       }
     },
     "event": "work-log"

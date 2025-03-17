@@ -1,0 +1,33 @@
+{
+  "name": "Consistency King",
+  "description": "Checked in & out without missing a day for a month.",
+  "image_url": "https://example.com/badges/consistency-king.png",
+  "flow_definition": {
+    "$and": [
+      {
+        "event": "check-in",
+        "criteria": {
+          "$eventCount": {
+            "$gte": 20
+          },
+          "timestamp": {
+            "$gte": "$NOW(-30d)",
+            "$lte": "$NOW()"
+          }
+        }
+      },
+      {
+        "event": "check-out",
+        "criteria": {
+          "$eventCount": {
+            "$gte": 20
+          },
+          "timestamp": {
+            "$gte": "$NOW(-30d)",
+            "$lte": "$NOW()"
+          }
+        }
+      }
+    ]
+  }
+}

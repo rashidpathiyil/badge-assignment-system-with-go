@@ -1,0 +1,22 @@
+{
+  "name": "Early Bird",
+  "description": "Checked in before 9 AM for 5 consecutive days.",
+  "image_url": "https://example.com/badges/early-bird.png",
+  "flow_definition": {
+    "criteria": {
+      "$eventCount": {
+        "$gte": 5
+      },
+      "timestamp": {
+        "$gte": "$NOW(-5d)",
+        "$lte": "$NOW()"
+      },
+      "payload": {
+        "time": {
+          "$lt": "09:00:00"
+        }
+      }
+    },
+    "event": "check-in"
+  }
+}

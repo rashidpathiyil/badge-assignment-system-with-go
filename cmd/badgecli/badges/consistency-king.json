@@ -1,34 +1,32 @@
 {
   "name": "Consistency King",
-  "description": "Checked in \u0026 out without missing a day for a month.",
+  "description": "Checked in & out without missing a day for a month.",
   "image_url": "https://example.com/badges/consistency-king.png",
   "flow_definition": {
     "$and": [
       {
+        "event": "check-in",
         "criteria": {
-          "$timePeriod": {
-            "count": {
-              "$gte": 20
-            },
-            "excludeHolidays": true,
-            "excludeWeekends": true,
-            "periodType": "day"
+          "$eventCount": {
+            "$gte": 20
+          },
+          "timestamp": {
+            "$gte": "$NOW(-30d)",
+            "$lte": "$NOW()"
           }
-        },
-        "event": "check-in"
+        }
       },
       {
+        "event": "check-out",
         "criteria": {
-          "$timePeriod": {
-            "count": {
-              "$gte": 20
-            },
-            "excludeHolidays": true,
-            "excludeWeekends": true,
-            "periodType": "day"
+          "$eventCount": {
+            "$gte": 20
+          },
+          "timestamp": {
+            "$gte": "$NOW(-30d)",
+            "$lte": "$NOW()"
           }
-        },
-        "event": "check-out"
+        }
       }
     ]
   }

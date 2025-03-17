@@ -4,8 +4,12 @@
   "image_url": "https://example.com/badges/bug-hunter.png",
   "flow_definition": {
     "criteria": {
-      "count": {
+      "$eventCount": {
         "$gte": 5
+      },
+      "timestamp": {
+        "$gte": "$NOW(-90d)",
+        "$lte": "$NOW()"
       },
       "payload": {
         "status": "fixed"
