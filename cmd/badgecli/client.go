@@ -99,7 +99,7 @@ func (c *APIClient) GetBadges() ([]Badge, error) {
 
 // GetBadgeWithCriteria gets a badge with its criteria by ID
 func (c *APIClient) GetBadgeWithCriteria(id string) (*BadgeWithCriteria, error) {
-	resp, err := c.HTTPClient.Get(fmt.Sprintf("%s/api/v1/badges/%s/criteria", c.BaseURL, id))
+	resp, err := c.HTTPClient.Get(fmt.Sprintf("%s/api/v1/admin/badges/%s/criteria", c.BaseURL, id))
 	if err != nil {
 		return nil, fmt.Errorf("error making request: %w", err)
 	}
@@ -126,7 +126,7 @@ func (c *APIClient) CreateBadge(badge *NewBadgeRequest) (*BadgeWithCriteria, err
 	}
 
 	resp, err := c.HTTPClient.Post(
-		fmt.Sprintf("%s/api/v1/badges", c.BaseURL),
+		fmt.Sprintf("%s/api/v1/admin/badges", c.BaseURL),
 		"application/json",
 		bytes.NewBuffer(jsonData),
 	)
@@ -150,7 +150,7 @@ func (c *APIClient) CreateBadge(badge *NewBadgeRequest) (*BadgeWithCriteria, err
 
 // GetEventTypes gets all event types from the system
 func (c *APIClient) GetEventTypes() ([]EventType, error) {
-	resp, err := c.HTTPClient.Get(fmt.Sprintf("%s/api/v1/event-types", c.BaseURL))
+	resp, err := c.HTTPClient.Get(fmt.Sprintf("%s/api/v1/admin/event-types", c.BaseURL))
 	if err != nil {
 		return nil, fmt.Errorf("error making request: %w", err)
 	}
@@ -171,7 +171,7 @@ func (c *APIClient) GetEventTypes() ([]EventType, error) {
 
 // GetEventTypeByID gets an event type by ID
 func (c *APIClient) GetEventTypeByID(id string) (*EventType, error) {
-	resp, err := c.HTTPClient.Get(fmt.Sprintf("%s/api/v1/event-types/%s", c.BaseURL, id))
+	resp, err := c.HTTPClient.Get(fmt.Sprintf("%s/api/v1/admin/event-types/%s", c.BaseURL, id))
 	if err != nil {
 		return nil, fmt.Errorf("error making request: %w", err)
 	}
@@ -198,7 +198,7 @@ func (c *APIClient) CreateEventType(eventType *NewEventTypeRequest) (*EventType,
 	}
 
 	resp, err := c.HTTPClient.Post(
-		fmt.Sprintf("%s/api/v1/event-types", c.BaseURL),
+		fmt.Sprintf("%s/api/v1/admin/event-types", c.BaseURL),
 		"application/json",
 		bytes.NewBuffer(jsonData),
 	)
