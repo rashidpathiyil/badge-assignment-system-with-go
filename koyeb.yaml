@@ -1,0 +1,28 @@
+name: badge-system
+services:
+  - name: api
+    type: web
+    git:
+      repository: YOUR_GITHUB_USERNAME/badge-assignment-system-with-go
+      branch: main
+    dockerfile: Dockerfile
+    ports:
+      - port: 8080
+        protocol: http
+    env:
+      - key: PORT
+        value: 8080
+      - key: GIN_MODE
+        value: release
+      - key: DB_HOST
+        value: ep-sparkling-snow-a1muiw9c.ap-southeast-1.pg.koyeb.app
+      - key: DB_PORT
+        value: 5432
+      - key: DB_USER
+        value: admin
+      - key: DB_PASSWORD
+        value: npg_6dBLinwmj3Ee
+      - key: DB_NAME
+        value: koyebdb
+      - key: DB_SSLMODE
+        value: require 
