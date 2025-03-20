@@ -253,7 +253,7 @@ String values and boolean values don't require special type conversion:
 
 ```go
 "status": "completed"
-"isActive": true
+"active": true
 ```
 
 ## Common Templates

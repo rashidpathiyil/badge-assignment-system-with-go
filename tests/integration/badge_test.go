@@ -40,7 +40,7 @@ func TestCreateBadge(t *testing.T) {
 		Description:    "A badge for achieving high scores",
 		ImageURL:       "https://example.com/badges/high-score.png",
 		FlowDefinition: criteria,
-		IsActive:       true,
+		Active:         true,
 	}
 
 	// Make the API request

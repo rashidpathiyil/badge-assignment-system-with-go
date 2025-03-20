@@ -28,7 +28,7 @@ type BadgeRequest struct {
 	Description    string                 `json:"description"`
 	ImageURL       string                 `json:"image_url"`
 	FlowDefinition map[string]interface{} `json:"flow_definition"`
-	IsActive       bool                   `json:"is_active"`
+	Active         bool                   `json:"active"`
 }
 
 // BadgeResponse represents a response for a badge
@@ -37,7 +37,7 @@ type BadgeResponse struct {
 	Name        string    `json:"name"`
 	Description string    `json:"description"`
 	ImageURL    string    `json:"image_url"`
-	IsActive    bool      `json:"is_active"`
+	Active      bool      `json:"active"`
 	CreatedAt   time.Time `json:"created_at"`
 	UpdatedAt   time.Time `json:"updated_at"`
 }
@@ -48,7 +48,7 @@ type BadgeCriteriaResponse struct {
 	Name        string                 `json:"name"`
 	Description string                 `json:"description"`
 	ImageURL    string                 `json:"image_url"`
-	IsActive    bool                   `json:"is_active"`
+	Active      bool                   `json:"active"`
 	Criteria    map[string]interface{} `json:"criteria"`
 	CreatedAt   time.Time              `json:"created_at"`
 	UpdatedAt   time.Time              `json:"updated_at"`

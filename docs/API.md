@@ -578,7 +578,7 @@ The Badge Assignment System API is divided into two main sections:
 **Request Body:**
 ```json
 {
-  "event_type": "Check In",
+  "event_type": "check-in",
   "user_id": "user123",
   "payload": {
     "time": "08:45:00",
@@ -592,15 +592,7 @@ The Badge Assignment System API is divided into two main sections:
 **Response:**
 ```json
 {
-  "id": 500,
-  "event_type_id": 1,
-  "user_id": "user123",
-  "payload": {
-    "time": "08:45:00",
-    "date": "2023-06-20",
-    "location": "Main Office"
-  },
-  "occurred_at": "2023-06-20T08:45:00Z"
+"message": "Event processed successfully"
 }
 ```
 
@@ -755,11 +747,12 @@ When creating badges, it's important to ensure that the event types referenced i
    ```
    POST /api/v1/events
    {
-     "event_type": "Check In",
+     "event_type": "check-in",
      "user_id": "user123",
      "payload": {
        "time": "08:45:00"
-     }
+     },
+     "timestamp": "2023-06-20T08:45:00Z"
    }
    ```
 

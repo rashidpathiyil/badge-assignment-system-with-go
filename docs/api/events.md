@@ -37,15 +37,7 @@ Records a new event in the system. When an event is recorded, the system evaluat
 **Response:**
 ```json
 {
-  "id": 500,
-  "event_type_id": 1,
-  "user_id": "user123",
-  "payload": {
-    "time": "08:45:00",
-    "date": "2023-06-20",
-    "location": "Main Office"
-  },
-  "occurred_at": "2023-06-20T08:45:00Z"
+  "message": "Event processed successfully"
 }
 ```
 

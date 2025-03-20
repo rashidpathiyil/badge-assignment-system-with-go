@@ -42,7 +42,7 @@ func TestNegativeScenarios(t *testing.T) {
 		Description:    "Badge that requires high score",
 		ImageURL:       "https://example.com/badges/high-score.png",
 		FlowDefinition: criteria,
-		IsActive:       true,
+		Active:         true,
 	}
 
 	// Make the API request
@@ -143,7 +143,7 @@ func TestInactiveBadge(t *testing.T) {
 		Description:    "Badge that is inactive",
 		ImageURL:       "https://example.com/badges/inactive.png",
 		FlowDefinition: criteria,
-		IsActive:       false, // Important: badge is inactive
+		Active:         false, // Important: badge is inactive
 	}
 
 	// Make the API request
@@ -253,7 +253,7 @@ func TestInvalidCriteriaFormat(t *testing.T) {
 		Description:    "This badge has invalid criteria format",
 		ImageURL:       "https://example.com/badges/invalid-criteria.png",
 		FlowDefinition: nil, // Nil flow definition should cause an error
-		IsActive:       true,
+		Active:         true,
 	}
 
 	// Make the API request

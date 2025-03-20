@@ -99,7 +99,7 @@ func TestLogicalOperators(t *testing.T) {
 		Description:    "Badge with logical operators criteria",
 		ImageURL:       "https://example.com/badges/logical-op.png",
 		FlowDefinition: criteria,
-		IsActive:       true,
+		Active:         true,
 	}
 
 	// Make the API request
@@ -246,7 +246,7 @@ func TestTimeBasedCriteria(t *testing.T) {
 		Description:    "Badge with time-based criteria",
 		ImageURL:       "https://example.com/badges/time-based.png",
 		FlowDefinition: criteria,
-		IsActive:       true,
+		Active:         true,
 	}
 
 	// Make the API request
